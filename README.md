@@ -13,7 +13,7 @@
 
 ## Литература
 
-- [Steven Skienna's Lectures](http://www3.cs.stonybrook.edu/~algorith/video-lectures/)
+- Steven Skienna's Lectures [Original (flash player required)](http://www3.cs.stonybrook.edu/~algorith/video-lectures/) / [Youtube](https://www.youtube.com/watch?v=ZFjhkohHdAA&list=PLOtl7M3yp-DV69F32zdK7YJcNXpTunF2b)
 - [MIT OpenCoursware - Introduction to Algorithms](https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-006-introduction-to-algorithms-fall-2011/)
 
 ## Задания
