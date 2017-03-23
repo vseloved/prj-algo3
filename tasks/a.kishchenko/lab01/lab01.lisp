@@ -4,6 +4,7 @@
 ;;;;
 
 (defconstant +dfile+ "lab01_dict")
+(defconstant +dfile_huge+ "../../dict_en.txt")
 
 ;;; dictionary hashtable
 ;;; key -> start letter
@@ -25,13 +26,14 @@
 ;;; read file with dictionary
 ;;; and fill hashtable
 (defun fill-dict()
-  (let ((in (open +dfile+ :if-does-not-exist nil)))
+  (let ((in (open +dfile_huge+ :if-does-not-exist nil)))
     (when in
       (loop for line = (read-line in nil)
-            while line do (if (gethash (char line 0) *dict*)
+            while line do (when (or (> (length line) 1) (and (= (length line) 1) (char-equal #\a (char line 0)))) (if (gethash (char line 0) *dict*)
                               (setf (gethash (char line 0) *dict*) (push line (gethash (char line 0) *dict*)))
-                              (setf (gethash (char line 0) *dict*) (list line))))
-      (close in))))
+                              (setf (gethash (char line 0) *dict*) (list line)))))
+      (close in)))
+  (pr "read finish"))
 
 ;;;
 ;;; Hashtable helpers
@@ -86,7 +88,6 @@
     (format t "~a" (char text pos))
     (print-fixed-text (+ pos 1) spacepos text arr n)))
 
-
 (defun get-all-path(ht key d arr)
   (if (> (hash-table-count ht) 0)
     (with-hash-table-iterator (iter ht)
@@ -114,7 +115,7 @@
 ;;;
 (defun my-main()
   (fill-dict)
-  ;; (print-ht-debug *dict*)
+  ;;(print-ht-debug *dict*)
   (read-text)
   (parse-text))
 
