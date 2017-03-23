@@ -4,6 +4,7 @@
 ;;;;
 
 (defconstant +dfile+ "lab01_dict")
+(defconstant +dngram+ "count_1w.txt")
 (defconstant +dfile_huge+ "../../dict_en.txt")
 
 ;;; dictionary hashtable
@@ -12,6 +13,9 @@
 ;;; a -> (a, aa, aaa, aaa, abc, abb)
 ;;; b -> (b, bbb, bbbccc, bbbc)
 (defparameter *dict* (make-hash-table :size 26))
+
+;;; key -> word, value -> freq
+(defparameter *ngram* (make-hash-table :size 1000000 :test 'equal))
 
 ;;; our broken text without whitespaces (getting from STDIN)
 (defparameter *text* nil)
@@ -23,17 +27,40 @@
 (defun pr2 (a b) (format t "~a~a~%" a b))
 (defun prt (a) (format t "type is ~a, value is ~a~%" (type-of a) a))
 
+(defun add-ngram (word freq)
+  (setf (gethash word *ngram*) freq))
+
+(defun parse-ngram (line)
+  (dotimes (i (length line))
+    (when (char-equal (char line i) #\Tab)
+      (add-ngram (subseq line 0 (- i 1))(parse-integer (subseq line i (length line)))))))
+
+;;; read file with ngrams
+(defun fill-ngram()
+  (let ((in (open +dngram+ :if-does-not-exist nil)))
+    (when in
+      (loop for line = (read-line in nil)
+            while line do (parse-ngram line)))
+    (close in))
+  (pr "ngram read finish"))
+
+;;;
+(defun frequentp (word)
+  (if (or (null (gethash word *ngram*)) (< (gethash word *ngram*) 13378)) nil t))
+
 ;;; read file with dictionary
 ;;; and fill hashtable
 (defun fill-dict()
   (let ((in (open +dfile_huge+ :if-does-not-exist nil)))
     (when in
       (loop for line = (read-line in nil)
-            while line do (when (or (> (length line) 1) (and (= (length line) 1) (char-equal #\a (char line 0)))) (if (gethash (char line 0) *dict*)
+            while line do (when (and (> (length line) 1) (frequentp line))
+                            (if (gethash (char line 0) *dict*)
                               (setf (gethash (char line 0) *dict*) (push line (gethash (char line 0) *dict*)))
                               (setf (gethash (char line 0) *dict*) (list line)))))
       (close in)))
-  (pr "read finish"))
+  (pr "dictionary read finish")
+  (setf (gethash "a" *dict*) (list "a")))
 
 ;;;
 ;;; Hashtable helpers
@@ -114,6 +141,7 @@
 ;;; main
 ;;;
 (defun my-main()
+  (fill-ngram)
   (fill-dict)
   ;;(print-ht-debug *dict*)
   (read-text)
