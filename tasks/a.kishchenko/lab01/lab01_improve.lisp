@@ -23,6 +23,7 @@
 
 ;;; add parsed ngram to hashtable
 (defun add-ngram (word freq)
+  (setf freq (floor freq 1000))
   (setf (gethash word *ngram*) freq))
 
 ;;; parse ngram, format: word[tab]frequency
@@ -86,33 +87,41 @@
 (defun collect-word (ht seq index txt)
   (when (wordp seq)
     ;; (format t "seq: ~a index: ~a~%" seq index)
-    (setf (gethash index ht) (make-hash-table))
-    (get-words (gethash index ht) txt index)))
+    (setf (gethash index ht) (cons (freqp seq) (make-hash-table)))
+    (get-words (cdr (gethash index ht)) txt index)))
 
 ;;; debug method, print path
 (defun get-prev-depth (arr n)
   (dotimes (i n)
-    (format t "~a " (aref arr i)))
+    (format t "~a " (car (aref arr i))))
   (format t "~%"))
 
+(defun get-prev-cost (arr n)
+  (let ((sum 0))
+    (dotimes (i n)
+      (setf sum (+ sum (cdr (aref arr i)))))
+    (format t " (cost: ~a)" sum)))
+
 ;;; print fixed text
+;;; array - (cons index . cost)
 (defun print-fixed-text (pos spacepos text arr n)
   (when (< pos (length text))
-    (when (eql pos (aref arr spacepos))
+    (when (eql pos (car (aref arr spacepos)))
       (format t " ")
       (when (< spacepos n)
         (setf spacepos (+ 1 spacepos))))
     (format t "~a" (char text pos))
     (print-fixed-text (+ pos 1) spacepos text arr n)))
 
+;;; array - (cons index . cost)
 (defun get-all-path(ht key d arr)
   (if (> (hash-table-count ht) 0)
     (with-hash-table-iterator (iter ht)
       (loop (multiple-value-bind (entry-p key value) (iter)
         (if entry-p
-          (progn (setf (aref arr d) key) (get-all-path (gethash key ht) key (+ d 1) arr))
+          (progn (setf (aref arr d) (cons key (car (gethash key ht)))) (get-all-path (cdr (gethash key ht)) key (+ d 1) arr))
           (return)))))
-    (progn (print-fixed-text 0 0 *text* arr d) (format t "~%"))))
+    (progn (print-fixed-text 0 0 *text* arr d) (get-prev-cost arr d) (format t "~%"))))
 
 ;;;
 ;;; main
