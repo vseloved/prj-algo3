@@ -1,12 +1,15 @@
-;(defun load-dict-from-file (filename)
-;  (with-open-file (stream filename)
-;    (loop repeat 100
-;      for line = (read-line stream nil)
-;      while line
-;      collect line
-;    )
-;  )
-;)
+(defun load-dict-from-file (filename)
+  (let ((dict (make-hash-table :test 'equal)))
+    (with-open-file (stream filename)
+      (loop
+        for line = (read-line stream nil)
+        while line
+        do (setf (gethash (string-right-trim '(#\Newline #\Return) line) dict) line)))
+    (return-from load-dict-from-file dict)
+  )
+)
+
+(print (load-dict-from-file "../../dict_en.txt"))
 
 (defun get-test-dict()
   (let ((dict (make-hash-table :test 'equal)))
@@ -24,8 +27,9 @@
          (if (gethash prefix dict)
              (let ((res (segment-str (subseq s i) dict mem)))
                (if (stringp res)
-                 (return-from segment-str (concatenate 'string prefix " " res))))))
-  )
+                 (return-from segment-str (concatenate 'string prefix " " res)))))))
 )
 
 (print (segment-str "aaaabab" (get-test-dict)))
+
+(print (segment-str "helloworld" (load-dict-from-file "../../dict_en.txt")))
