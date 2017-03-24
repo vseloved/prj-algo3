@@ -147,8 +147,15 @@
   (pr2 "hash hello = " (gethash "hello" *ngram*))
   (pr2 "hash a = " (gethash "a" *ngram*)))
 
+(defun assert-cost()
+  (pr2 "cost hello world = " (freqp2 "world" "hello"))
+  (pr2 "cost with a = " (freqp2 "a" "with"))
+  (pr2 "cost super inefficient = " (freqp2 "inefficient" "super"))
+  (pr2 "cost 2nd century = " (freqp2 "century" "2nd")))
+
 (defun all-asserts()
-  (assert-ngram))
+  (assert-ngram)
+  (assert-cost))
 
 ;;;
 ;;; main
@@ -156,9 +163,9 @@
 (defun my-main()
   (fill-ngram "count_1w.txt" *ngram*)
   (fill-ngram "count_2w.txt" *ngram2*)
-  (all-asserts)
-  (read-text)
-  (parse-text))
+  (all-asserts))
+  ;; (read-text)
+  ;; (parse-text))
 
 
 (my-main)
