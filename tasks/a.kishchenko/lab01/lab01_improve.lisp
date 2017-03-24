@@ -31,7 +31,7 @@
 ;;; add parsed ngram to hashtable
 (defun add-ngram (word freq ht del)
   (when del
-    (setf freq (floor freq 100000)))
+    (setf freq (floor freq 100000))) 
   (cond ((> (length word) 1) (setf (gethash word ht) freq))
         ((and (= (length word) 1) (is-char-valid word)) (setf (gethash word ht) freq))))
 
@@ -104,9 +104,12 @@
   (let ((cost (freqp2 seq prevSeq)))
     (when (wordp seq prevSeq)
       (setf wordcost (+ wordcost (freqp seq)))
-      (setf memcost (* memcost cost))
+      (setf memcost (+ memcost cost))
+      (when (and ( > depth 12) (< memcost 10000))
+        ;; (format t "bad path d = ~a mem = ~a~%" depth memcost)
+        (return-from collect-word))
       (when (and (= cost 1) (> memcost 10000))
-        (setf memcost (floor memcost 10000)))
+        (setf memcost (floor memcost 10)))
       ;; (format t "~a ~a -> cost: ~a memcost: ~a wordcost: ~a ~%" prevSeq seq cost memcost wordcost)
 
       (setf (gethash index ht) (cons (+ memcost wordcost) (make-hash-table)))
