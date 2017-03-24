@@ -28,11 +28,11 @@
         do (if (gethash prefix dict)
              (let ((res (segment-str (subseq s i) dict mem)))
                (if (stringp res)
-                 ((progn
-                   (setf (gethash s dict) (concatenate 'string prefix " " res))
-                   (return-from segment-str (gethash s mem)))))))))
+                 (progn
+                   (setf (gethash s mem) (concatenate 'string prefix " " res))
+                   (return-from segment-str (gethash s mem))))))))
 )
 
-(print (segment-str "aaaabab" (get-test-dict)))
+(print (segment-str "aaaab" (get-test-dict)))
 
-(time (segment-str "helloworld" (load-dict-from-file "../../dict_en.txt")))
+(print (segment-str "helloworld" (load-dict-from-file "../../dict_en.txt")))
