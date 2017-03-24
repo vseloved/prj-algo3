@@ -4,16 +4,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 /*
-Слова читаем из файла и храним в HashSet. Добавление и поиск О(1).
-Вектор backtrack хранит множества чисел, backtrack[i] хранит длины строк, которые заканчиваются на i-том символе входной строки.
+Слова читаем из файла и храним в HashSet words. Добавление и поиск О(1).
+backtrack - вектор множеств, backtrack[i] хранит множество длин строк, которые заканчиваются на i-том символе входной строки.
 Заполняем backtrack проходя по входной строке за О(n**2).
-Делаем обратный проход рекурсивно начиная с конца backtrack чтобы собрать все сегментации слов за О(n**2)(?) в худшем случае.
+Делаем обратный проход рекурсивно начиная с конца backtrack чтобы собрать все сегментации слов. Запоминаем результаты рекурсивных
+вызовов в вектор memo, потому каждая подзадача вычисляется только один раз. Количество подзадач - n. Сложность решения подзадачи - О(k) где k длина слова,
+длина слова в моем понимании величина статистическая, со срелним константным значением, то есть в нашем случае О(k) -> О(1).
+Таким обратный проход работает за О(n)
 Возможные оптимизации -
 1. Узнать у словаря какая длина самого длинного слова и делать внутренний цикл заполнения backtrack до этого значения.
 Это позволит заполнить backtrack за О(n * k) где k константа.
 2. Xранить слова в префиксном дереве вместо HashSet. Это даст мозможность спросить у словаря, есть ли еще слова с даным
-префиксом и прекратить внутренний цикл заполнения backtrack если таких слов нет.
-Это позволит заполнить backtrack за О(n * k) где k константа.
+префиксом и прекратить внутренний цикл заполнения backtrack если таких слов нет. Это позволит заполнить backtrack за О(n * k) где k константа.
 */
 public class DynamicTask1 {
     private static Set<String> readWordsFromFile(String path) {
@@ -31,21 +33,32 @@ public class DynamicTask1 {
         return words;
     }
 
-    private static void getSegmentations(char[] charArray,
-                                        ArrayList<HashSet<Integer>> backTrack,
-                                        int currentPosition,
-                                        Deque<String> currentSegmentation,
-                                        ArrayList<Deque<String>> segmentations) {
+    private static ArrayList<Deque<String>> getSegmentations(char[] charArray,
+                                                             ArrayList<HashSet<Integer>> backTrack,
+                                                             int currentPosition,
+                                                             ArrayList<ArrayList<Deque<String>>> memo) {
         if (currentPosition < 0) {
-            segmentations.add(new ArrayDeque<>(currentSegmentation)); // O(n)
-            return;
+            Deque<String> emptyDeque = new ArrayDeque<>();
+            ArrayList<Deque<String>> result = new ArrayList<>();
+            result.add(emptyDeque);
+            return result;
         }
+        if (memo.get(currentPosition).size() != 0) {
+            return memo.get(currentPosition);
+        }
+        ArrayList<Deque<String>> newResult = new ArrayList<>();
         for (int number : backTrack.get(currentPosition)) {
-            String str = new String(charArray, currentPosition - number + 1, number); // O(n)
-            currentSegmentation.push(str); // O(1)
-            getSegmentations(charArray, backTrack, currentPosition - number, currentSegmentation, segmentations);
-            currentSegmentation.pop(); // O(1)
+            String str = new String(charArray, currentPosition - number + 1, number);
+            ArrayList<Deque<String>> subProblemResult = new ArrayList<>(getSegmentations(charArray, backTrack, currentPosition - number, memo));
+
+            for (Deque<String> subProblemSolution : subProblemResult) {
+                Deque<String> newSolution = new ArrayDeque<>(subProblemSolution);
+                newSolution.add(str);
+                newResult.add(newSolution);
+            }
         }
+        memo.set(currentPosition, newResult);
+        return newResult;
     }
 
     public static void main(String[] args) {
@@ -54,8 +67,10 @@ public class DynamicTask1 {
         char[] charArray = inputText.toCharArray(); // O(1)
 
         ArrayList<HashSet<Integer>> backTrack = new ArrayList<>(charArray.length);
+        ArrayList<ArrayList<Deque<String>>> memo = new ArrayList<>(charArray.length);
         for (char aCharArray : charArray) {
             backTrack.add(new HashSet<Integer>());
+            memo.add(new ArrayList<Deque<String>>());
         }
 
         for (int i = 0; i < charArray.length; i++) {
@@ -69,8 +84,8 @@ public class DynamicTask1 {
                 }
             }
         }
-        ArrayList<Deque<String>> segmentations = new ArrayList<>();
-        getSegmentations(charArray, backTrack, charArray.length - 1, new ArrayDeque<String>(), segmentations);
+
+        ArrayList<Deque<String>> segmentations = getSegmentations(charArray, backTrack, charArray.length - 1, memo);
         for (Deque segmentation : segmentations) {
             System.out.println(segmentation);
         }
