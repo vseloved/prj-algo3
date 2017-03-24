@@ -69,7 +69,8 @@
 
 (defun parse-text()
   (get-words *tree* *text* 0 nil 1 0 0)
-  (get-all-path *tree* 0 0 (make-array 32767)))
+  (get-all-path *tree* 0 0 (make-array 32767))
+  (print-fixed-text 0 0 *text* *path* *depth*))
 
 (defun freqp (seq)
   (let ((freq (gethash seq *ngram*)))
@@ -113,18 +114,8 @@
       (get-words (cdr (gethash index ht)) txt index seq memcost wordcost (+ depth 1))))
     )
 
-(defun get-prev-depth (arr n)
-  (dotimes (i n)
-    (format t "~a " (car (aref arr i))))
-  (format t "~%"))
-
 (defun get-prev-cost (arr n)
-  (when (> n 0)
-    (format t " (cost: ~a)" (cdr (aref arr (- n 1))))))
-  ;; (let ((sum 0))
-  ;;   (dotimes (i n)
-  ;;     (setf sum (+ sum (cdr (aref arr i)))))
-  ;;   (format t " (cost: ~a)" sum)))
+  (if (> n 0) (cdr (aref arr (- n 1))) 0))
 
 ;;; print fixed text
 ;;; array - (cons index . cost)
@@ -137,6 +128,21 @@
     (format t "~a" (char text pos))
     (print-fixed-text (+ pos 1) spacepos text arr n)))
 
+;;; TODO: refactoring
+(defparameter *path* (make-array 32767))
+(defparameter *bestcost* 0)
+(defparameter *depth* 0)
+(defun check-path (arr d)
+  (let ((cost (get-prev-cost arr d)))
+    (when (> cost *bestcost*)
+      (setf *bestcost* cost)
+      (setf *depth* d)
+      (copy-path arr d))))
+
+(defun copy-path (arr d)
+  (dotimes (i d)
+    (setf (aref *path* i) (aref arr i))))
+
 ;;; array - (cons index . cost)
 (defun get-all-path(ht key d arr)
   (if (> (hash-table-count ht) 0)
@@ -145,7 +151,7 @@
         (if entry-p
           (progn (setf (aref arr d) (cons key (car (gethash key ht)))) (get-all-path (cdr (gethash key ht)) key (+ d 1) arr))
           (return)))))
-    (progn (print-fixed-text 0 0 *text* arr d) (get-prev-cost arr d) (format t "~%"))))
+    (check-path arr d)))
 
 ;;;
 ;;; Asserts
@@ -173,7 +179,7 @@
 (defun my-main()
   (fill-ngram "count_1w.txt" *ngram* t)
   (fill-ngram "count_2w.txt" *ngram2* nil)
-  (all-asserts)
+  ;; (all-asserts)
   (read-text)
   (parse-text))
 
