@@ -5,32 +5,37 @@
 
 (in-package :split-text)
 
-(defvar *dict* nil)
+(defvar *dict* (make-hash-table :test #'equal))
+
+(defun add-to-dict (word)
+  (let ((cleaned-word (string-right-trim '(#\Return) word)))
+    (setf (gethash cleaned-word *dict*) t)))
+
+(defun find-in-dict (word)
+  (gethash word *dict*))
 
 (defun reset-dict ()
-  (setf *dict* nil))
+  (setf *dict* (make-hash-table :test #'equal)))
 
 (defun load-dict (filename)
   (with-open-file (in filename)
-    (flet ((add-to-dict (word)
-	     (pushnew (string-right-trim '(#\Return) word) *dict*)))
-      (loop
-	 for word = (read-line in nil)
-	 while word
-	 do (add-to-dict word)))))
+    (loop
+       for word = (read-line in nil)
+       while word
+       do (add-to-dict word))))
 
-(defun SPLIT-TEXT (string &optional (memo (make-hash-table :test #'equal)))
-  (or (gethash string memo)
+(defun SPLIT-TEXT (str &optional (memo (make-hash-table :test #'equal)))
+  (or (gethash str memo)
       (loop
-	 for i from 1 below (length string)
-	 for word = (subseq string 0 i)
-	 when (find word *dict* :test #'equal)
+	 for i from 1 below (length str)
+	 for word = (subseq str 0 i)
+	 when (find-in-dict word)
 	 append
-	   (loop for chunk in (SPLIT-TEXT (subseq string i) memo)
+	   (loop for chunk in (SPLIT-TEXT (subseq str i) memo)
 	      collect (concatenate 'string word " " chunk))
 	 into results
 	 finally
-	   (if (find string *dict* :test #'equal)
-	       (push string results))
-	   (setf (gethash string memo) results)
+	   (if (find-in-dict str)
+	       (push str results))
+	   (setf (gethash str memo) results)
 	   (return results))))
