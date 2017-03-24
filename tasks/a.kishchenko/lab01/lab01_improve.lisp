@@ -22,10 +22,15 @@
 (defun pr2 (a b) (format t "~a~a~%" a b))
 (defun prt (a) (format t "type is ~a, value is ~a~%" (type-of a) a))
 
+;;; check if first char A or a
+(defun is-char-a (word)
+  (cond ((char-equal (char word 0) #\a) t)
+        ((char-equal (char word 0) #\A) t)))
+
 ;;; add parsed ngram to hashtable
 (defun add-ngram (word freq ht)
-  ;; (setf freq (floor freq 10000))
-  (setf (gethash word ht) freq))
+  (cond ((> (length word) 1) (setf (gethash word ht) freq))
+        ((and (= (length word) 1) (is-char-a word)) (setf (gethash word ht) freq))))
 
 ;;; parse ngram, format: word[tab]frequency
 (defun parse-ngram (line ht)
@@ -134,12 +139,28 @@
     (progn (print-fixed-text 0 0 *text* arr d) (get-prev-cost arr d) (format t "~%"))))
 
 ;;;
+;;; Asserts
+;;;
+(defun assert-ngram()
+  (pr2 "hash b = " (gethash "b" *ngram*))
+  (pr2 "hash A = " (gethash "b" *ngram*))
+  (pr2 "hash hello = " (gethash "hello" *ngram*))
+  (pr2 "hash a = " (gethash "a" *ngram*)))
+
+(defun all-asserts()
+  (assert-ngram))
+
+;;;
 ;;; main
 ;;;
 (defun my-main()
   (fill-ngram "count_1w.txt" *ngram*)
   (fill-ngram "count_2w.txt" *ngram2*)
+  (all-asserts)
   (read-text)
   (parse-text))
 
+
 (my-main)
+
+
