@@ -23,16 +23,17 @@
 (defun prt (a) (format t "type is ~a, value is ~a~%" (type-of a) a))
 
 ;;; check if first char A or a
-(defun is-char-a (word)
+(defun is-char-valid (word)
   (cond ((char-equal (char word 0) #\a) t)
-        ((char-equal (char word 0) #\A) t)))
+        ((char-equal (char word 0) #\A) t)
+        ((char-equal (char word 0) #\I) t)))
 
 ;;; add parsed ngram to hashtable
 (defun add-ngram (word freq ht del)
   (when del
     (setf freq (floor freq 100000)))
   (cond ((> (length word) 1) (setf (gethash word ht) freq))
-        ((and (= (length word) 1) (is-char-a word)) (setf (gethash word ht) freq))))
+        ((and (= (length word) 1) (is-char-valid word)) (setf (gethash word ht) freq))))
 
 ;;; parse ngram, format: word[tab]frequency
 (defun parse-ngram (line ht del)
@@ -103,10 +104,11 @@
   (let ((cost (freqp2 seq prevSeq)))
     (when (wordp seq prevSeq)
       (setf wordcost (+ wordcost (freqp seq)))
-      (when (and (= cost 1) (> memcost 1000))
-        (setf memcost (floor memcost 1000)))
-
       (setf memcost (* memcost cost))
+      (when (and (= cost 1) (> memcost 10000))
+        (setf memcost (floor memcost 10000)))
+      ;; (format t "~a ~a -> cost: ~a memcost: ~a wordcost: ~a ~%" prevSeq seq cost memcost wordcost)
+
       (setf (gethash index ht) (cons (+ memcost wordcost) (make-hash-table)))
       (get-words (cdr (gethash index ht)) txt index seq memcost wordcost (+ depth 1))))
     )
