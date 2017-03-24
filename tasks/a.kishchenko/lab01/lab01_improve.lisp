@@ -30,7 +30,7 @@
 ;;; add parsed ngram to hashtable
 (defun add-ngram (word freq ht del)
   (when del
-    (setf freq (floor freq 1000)))
+    (setf freq (floor freq 100000)))
   (cond ((> (length word) 1) (setf (gethash word ht) freq))
         ((and (= (length word) 1) (is-char-a word)) (setf (gethash word ht) freq))))
 
@@ -68,9 +68,8 @@
   (setf *text* (read)))
 
 (defun parse-text()
-  (let ((memcost (make-array 32767)))
-    (get-words *tree* *text* 0 nil memcost 0)
-    (get-all-path *tree* 0 0 (make-array 32767))))
+  (get-words *tree* *text* 0 nil 1 0 0)
+  (get-all-path *tree* 0 0 (make-array 32767)))
 
 (defun freqp (seq)
   (let ((freq (gethash seq *ngram*)))
@@ -81,7 +80,7 @@
 
 (defun freqp2 (seq prevSeq)
   (let ((freq (gethash (concat2 seq prevSeq) *ngram2*)))
-    (if (not freq) 0 freq)))
+    (if (not freq) 1 freq)))
 
 (defun wordp (seq prevSeq)
   (if (> (freqp seq) 0) t nil))
@@ -95,28 +94,24 @@
 (defun max-bounds (st txt)
   (min (length txt) (+ st +maxwordlen+)))
 
-(defun get-words (ht txt start prevSeq memcost depth)
+(defun get-words (ht txt start prevSeq memcost wordcost depth)
   (let ((st (+ start 1)))
     (when (valid-len txt start)
       (let ((end (max-bounds st txt)))
         (loop for i from st to end
-              do (collect-word ht prevSeq (subseq txt start i) i txt memcost depth))))))
+              do (collect-word ht prevSeq (subseq txt start i) i txt memcost wordcost depth))))))
 
-(defun collect-word (ht prevSeq seq index txt memcost depth)
-  (let ((cost (+ (freqp2 seq prevSeq) 0)))
+(defun collect-word (ht prevSeq seq index txt memcost wordcost depth)
+  (let ((cost (freqp2 seq prevSeq)))
     (when (wordp seq prevSeq)
-      (setf (aref memcost depth) cost)
-      (format t "~a ~a -> depth: ~a cost = ~a~%" prevSeq seq depth cost)
-      (print-arr memcost depth)
-      (setf (gethash index ht) (cons cost (make-hash-table)))
-      (get-words (cdr (gethash index ht)) txt index seq memcost (+ depth 1))))
-    )
+      (setf wordcost (+ wordcost (freqp seq)))
+      (when (and (= cost 1) (> memcost 1000))
+        (setf memcost (floor memcost 1000)))
 
-;;; debug method, print path
-(defun print-arr (arr n)
-  (dotimes (i n)
-    (format t "~a " (aref arr i)))
-  (format t "~%"))
+      (setf memcost (* memcost cost))
+      (setf (gethash index ht) (cons (+ memcost wordcost) (make-hash-table)))
+      (get-words (cdr (gethash index ht)) txt index seq memcost wordcost (+ depth 1))))
+    )
 
 (defun get-prev-depth (arr n)
   (dotimes (i n)
@@ -124,7 +119,8 @@
   (format t "~%"))
 
 (defun get-prev-cost (arr n)
-  (format t " (cost: ~a)" (cdr (aref arr (- n 1)))))
+  (when (> n 0)
+    (format t " (cost: ~a)" (cdr (aref arr (- n 1))))))
   ;; (let ((sum 0))
   ;;   (dotimes (i n)
   ;;     (setf sum (+ sum (cdr (aref arr i)))))
@@ -162,6 +158,7 @@
 
 (defun assert-cost()
   (pr2 "cost hello world = " (freqp2 "world" "hello"))
+  (pr2 "cost low or = " (freqp2 "or" "low"))
   (pr2 "cost with a = " (freqp2 "a" "with"))
   (pr2 "cost super inefficient = " (freqp2 "inefficient" "super"))
   (pr2 "cost 2nd century = " (freqp2 "century" "2nd")))
