@@ -5,12 +5,13 @@
 ;;;;
 
 (defconstant +dfile+ "lab01_dict")
-(defconstant +dngram+ "count_1w.txt")
 
 (defconstant +maxwordlen+ 24)
 
 ;;; key -> word, value -> freq
 (defparameter *ngram* (make-hash-table :size 1000000 :test 'equal))
+;;; key -> word word, value -> freq
+(defparameter *ngram2* (make-hash-table :size 1000000 :test 'equal))
 ;;; our broken text without whitespaces (getting from STDIN)
 (defparameter *text* nil)
 ;;; tree path
@@ -22,24 +23,24 @@
 (defun prt (a) (format t "type is ~a, value is ~a~%" (type-of a) a))
 
 ;;; add parsed ngram to hashtable
-(defun add-ngram (word freq)
-  (setf freq (floor freq 1000))
-  (setf (gethash word *ngram*) freq))
+(defun add-ngram (word freq ht)
+  ;; (setf freq (floor freq 10000))
+  (setf (gethash word ht) freq))
 
 ;;; parse ngram, format: word[tab]frequency
-(defun parse-ngram (line)
+(defun parse-ngram (line ht)
   (dotimes (i (length line))
     (when (char-equal (char line i) #\Tab)
-      (add-ngram (subseq line 0 (- i 1))(parse-integer (subseq line i (length line)))))))
+      (add-ngram (subseq line 0 i)(parse-integer (subseq line i (length line))) ht))))
 
 ;;; read file with ngrams
-(defun fill-ngram()
-  (let ((in (open +dngram+ :if-does-not-exist nil)))
+(defun fill-ngram(fname ht)
+  (let ((in (open fname :if-does-not-exist nil)))
     (when in
       (loop for line = (read-line in nil)
-            while line do (parse-ngram line)))
+            while line do (parse-ngram line ht)))
     (close in))
-  (pr "ngram read/parse finish"))
+  (pr " read -> parse finish"))
 
 ;;;
 ;;; Hashtable helpers
@@ -127,7 +128,8 @@
 ;;; main
 ;;;
 (defun my-main()
-  (fill-ngram)
+  (fill-ngram "count_1w.txt" *ngram*)
+  (fill-ngram "count_2w.txt" *ngram2*)
   (read-text)
   (parse-text))
 
