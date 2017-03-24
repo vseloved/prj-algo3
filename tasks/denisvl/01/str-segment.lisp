@@ -20,16 +20,19 @@
 (print (get-test-dict))
 
 (defun segment-str(s dict &optional (mem (make-hash-table :test 'equal)))
-  (when (gethash s dict)
-    (return-from segment-str s))
-  (loop for i from 1 to (length s)
-    do (let ((prefix (subseq s 0 i)))
-         (if (gethash prefix dict)
+  (or (gethash s dict)
+      (gethash s mem)
+      (loop
+        for i from 1 to (length s)
+        for prefix = (subseq s 0 i)
+        do (if (gethash prefix dict)
              (let ((res (segment-str (subseq s i) dict mem)))
                (if (stringp res)
-                 (return-from segment-str (concatenate 'string prefix " " res)))))))
+                 ((progn
+                   (setf (gethash s dict) (concatenate 'string prefix " " res))
+                   (return-from segment-str (gethash s mem)))))))))
 )
 
 (print (segment-str "aaaabab" (get-test-dict)))
 
-(print (segment-str "helloworld" (load-dict-from-file "../../dict_en.txt")))
+(time (segment-str "helloworld" (load-dict-from-file "../../dict_en.txt")))
