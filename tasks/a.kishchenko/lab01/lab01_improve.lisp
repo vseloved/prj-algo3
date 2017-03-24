@@ -62,15 +62,25 @@
 
 (defun parse-text()
   (let ((tree ()))
-    (get-words *tree* *text* 0)
+    (get-words *tree* *text* 0 nil)
     (get-all-path *tree* 0 0 (make-array 32767))))
 
 (defun freqp (seq)
   (let ((freq (gethash seq *ngram*)))
     (if (not freq) 0 freq)))
 
-(defun wordp (seq)
+(defun concat2 (seq prevSeq)
+  (concatenate 'string prevSeq " " seq))
+
+(defun freqp2 (seq prevSeq)
+  (let ((freq (gethash (concat2 seq prevSeq) *ngram2*)))
+    (if (not freq) 0 freq)))
+
+(defun wordp (seq prevSeq)
   (if (> (freqp seq) 0) t nil))
+  ;; (if (not prevSeq)
+  ;;   (if (> (freqp seq) 0) t nil)
+  ;;   (if (> (freqp2 seq prevSeq) 0) t nil)))
 
 (defun valid-len (txt i)
   (if (< i (length txt)) t nil))
@@ -78,18 +88,17 @@
 (defun max-bounds (st txt)
   (min (length txt) (+ st +maxwordlen+)))
 
-(defun get-words (ht txt start)
+(defun get-words (ht txt start prevSeq)
   (let ((st (+ start 1)))
     (when (valid-len txt start)
       (let ((end (max-bounds st txt)))
         (loop for i from st to end
-              do (collect-word ht (subseq txt start i) i txt))))))
+              do (collect-word ht prevSeq (subseq txt start i) i txt))))))
 
-(defun collect-word (ht seq index txt)
-  (when (wordp seq)
-    ;; (format t "seq: ~a index: ~a~%" seq index)
-    (setf (gethash index ht) (cons (freqp seq) (make-hash-table)))
-    (get-words (cdr (gethash index ht)) txt index)))
+(defun collect-word (ht prevSeq seq index txt)
+  (when (wordp seq prevSeq)
+    (setf (gethash index ht) (cons (freqp2 seq prevSeq) (make-hash-table)))
+    (get-words (cdr (gethash index ht)) txt index seq)))
 
 ;;; debug method, print path
 (defun get-prev-depth (arr n)
