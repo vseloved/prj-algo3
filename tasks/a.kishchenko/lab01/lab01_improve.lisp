@@ -73,7 +73,7 @@
   (print-fixed-text 0 0 *text* *path* *depth*))
 
 (defun freqp (seq)
-  (let ((freq (gethash seq *ngram*)))
+  (let ((freq (gethash (string-downcase seq) *ngram*)))
     (if (not freq) 0 freq)))
 
 (defun concat2 (seq prevSeq)
@@ -85,9 +85,6 @@
 
 (defun wordp (seq prevSeq)
   (if (> (freqp seq) 0) t nil))
-  ;; (if (not prevSeq)
-  ;;   (if (> (freqp seq) 0) t nil)
-  ;;   (if (> (freqp2 seq prevSeq) 0) t nil)))
 
 (defun valid-len (txt i)
   (if (< i (length txt)) t nil))
@@ -159,6 +156,7 @@
 (defun assert-ngram()
   (pr2 "hash b = " (gethash "b" *ngram*))
   (pr2 "hash A = " (gethash "b" *ngram*))
+  (pr2 "hash Hello = " (gethash (string-downcase "Hello") *ngram*))
   (pr2 "hash hello = " (gethash "hello" *ngram*))
   (pr2 "hash a = " (gethash "a" *ngram*)))
 
