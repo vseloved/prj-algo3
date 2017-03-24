@@ -28,22 +28,24 @@
         ((char-equal (char word 0) #\A) t)))
 
 ;;; add parsed ngram to hashtable
-(defun add-ngram (word freq ht)
+(defun add-ngram (word freq ht del)
+  (when del
+    (setf freq (floor freq 1000)))
   (cond ((> (length word) 1) (setf (gethash word ht) freq))
         ((and (= (length word) 1) (is-char-a word)) (setf (gethash word ht) freq))))
 
 ;;; parse ngram, format: word[tab]frequency
-(defun parse-ngram (line ht)
+(defun parse-ngram (line ht del)
   (dotimes (i (length line))
     (when (char-equal (char line i) #\Tab)
-      (add-ngram (subseq line 0 i)(parse-integer (subseq line i (length line))) ht))))
+      (add-ngram (subseq line 0 i)(parse-integer (subseq line i (length line))) ht del))))
 
 ;;; read file with ngrams
-(defun fill-ngram(fname ht)
+(defun fill-ngram(fname ht del)
   (let ((in (open fname :if-does-not-exist nil)))
     (when in
       (loop for line = (read-line in nil)
-            while line do (parse-ngram line ht)))
+            while line do (parse-ngram line ht del)))
     (close in))
   (pr " read -> parse finish"))
 
@@ -66,8 +68,8 @@
   (setf *text* (read)))
 
 (defun parse-text()
-  (let ((tree ()))
-    (get-words *tree* *text* 0 nil)
+  (let ((memcost (make-array 32767)))
+    (get-words *tree* *text* 0 nil memcost 0)
     (get-all-path *tree* 0 0 (make-array 32767))))
 
 (defun freqp (seq)
@@ -93,29 +95,40 @@
 (defun max-bounds (st txt)
   (min (length txt) (+ st +maxwordlen+)))
 
-(defun get-words (ht txt start prevSeq)
+(defun get-words (ht txt start prevSeq memcost depth)
   (let ((st (+ start 1)))
     (when (valid-len txt start)
       (let ((end (max-bounds st txt)))
         (loop for i from st to end
-              do (collect-word ht prevSeq (subseq txt start i) i txt))))))
+              do (collect-word ht prevSeq (subseq txt start i) i txt memcost depth))))))
 
-(defun collect-word (ht prevSeq seq index txt)
-  (when (wordp seq prevSeq)
-    (setf (gethash index ht) (cons (freqp2 seq prevSeq) (make-hash-table)))
-    (get-words (cdr (gethash index ht)) txt index seq)))
+(defun collect-word (ht prevSeq seq index txt memcost depth)
+  (let ((cost (+ (freqp2 seq prevSeq) 0)))
+    (when (wordp seq prevSeq)
+      (setf (aref memcost depth) cost)
+      (format t "~a ~a -> depth: ~a cost = ~a~%" prevSeq seq depth cost)
+      (print-arr memcost depth)
+      (setf (gethash index ht) (cons cost (make-hash-table)))
+      (get-words (cdr (gethash index ht)) txt index seq memcost (+ depth 1))))
+    )
 
 ;;; debug method, print path
+(defun print-arr (arr n)
+  (dotimes (i n)
+    (format t "~a " (aref arr i)))
+  (format t "~%"))
+
 (defun get-prev-depth (arr n)
   (dotimes (i n)
     (format t "~a " (car (aref arr i))))
   (format t "~%"))
 
 (defun get-prev-cost (arr n)
-  (let ((sum 0))
-    (dotimes (i n)
-      (setf sum (+ sum (cdr (aref arr i)))))
-    (format t " (cost: ~a)" sum)))
+  (format t " (cost: ~a)" (cdr (aref arr (- n 1)))))
+  ;; (let ((sum 0))
+  ;;   (dotimes (i n)
+  ;;     (setf sum (+ sum (cdr (aref arr i)))))
+  ;;   (format t " (cost: ~a)" sum)))
 
 ;;; print fixed text
 ;;; array - (cons index . cost)
@@ -161,11 +174,11 @@
 ;;; main
 ;;;
 (defun my-main()
-  (fill-ngram "count_1w.txt" *ngram*)
-  (fill-ngram "count_2w.txt" *ngram2*)
-  (all-asserts))
-  ;; (read-text)
-  ;; (parse-text))
+  (fill-ngram "count_1w.txt" *ngram* t)
+  (fill-ngram "count_2w.txt" *ngram2* nil)
+  (all-asserts)
+  (read-text)
+  (parse-text))
 
 
 (my-main)
