@@ -2,7 +2,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+
 /*
 Слова читаем из файла и храним в HashSet words. Добавление и поиск О(1).
 backtrack - вектор множеств, backtrack[i] хранит множество длин строк, которые заканчиваются на i-том символе входной строки.
