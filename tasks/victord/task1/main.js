@@ -36,7 +36,7 @@ console.log(getDictMatches('thousandfoldlyabc', 0));
 console.log(getDictMatches('thousandfoldlyabc', 8));
 console.log(getDictMatches(':-)', 0));
 
-function getGreedySolution(text) {
+function restoreSpacesGreedily(text) {
   let result = [];
 
   for (let i = 0; i < text.length; i++) {
@@ -53,29 +53,29 @@ function getGreedySolution(text) {
 
   return result.join(' ');
 }
-console.log(getGreedySolution('thisisatest'));
-console.log(getGreedySolution('thousandfoldlyisastrangeword'));
+console.log(restoreSpacesGreedily('thisisatest'));
+console.log(restoreSpacesGreedily('thousandfoldlyisastrangeword'));
 
-function getSolutionsTree(text) {
+function getWordsTree(text) {
   if (text.length < 2) {
     return new Map([[text, new Map()]]);
   }
 
-  const solutionsBySrcLen = new Map();
+  const wordsBySrcLen = new Map();
   for (let i = 0; i <= text.length; i++) {
-    solutionsBySrcLen.set(i, new Map());
+    wordsBySrcLen.set(i, new Map());
   }
 
   for (let i = 0; i < text.length; i++) {
     for (const match of (getDictMatches(text, i) || [text[i]])) {
-      solutionsBySrcLen.get(i + match.length).set(match, solutionsBySrcLen.get(i));
+      wordsBySrcLen.get(i + match.length).set(match, wordsBySrcLen.get(i));
     }
   }
 
-  return solutionsBySrcLen.get(text.length);
+  return wordsBySrcLen.get(text.length);
 }
 
-function unwindSolutionsTree(tree) {
+function unwindWordsTree(tree) {
   const unwinded = [];
 
   while (tree.size > 0) {
@@ -94,9 +94,9 @@ function unwindSolutionsTree(tree) {
 
   return unwinded;
 }
-console.log(unwindSolutionsTree(getSolutionsTree('t')));
-console.log(unwindSolutionsTree(getSolutionsTree('thisisatest')));
+console.log(unwindWordsTree(getWordsTree('t')));
+console.log(unwindWordsTree(getWordsTree('thisisatest')));
 
-function getBestSolutionFromTree(tree) {
+function getBestTextFromWordsTree(tree) {
   // TODO
 }
