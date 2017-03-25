@@ -2,13 +2,10 @@
 
 const fs = require('fs');
 
-const tree = new Map();
-let maxWordLen = 0;
+const dictTree = new Map();
 
 for (const word of fs.readFileSync(`${__dirname}/../../dict_en.txt`).toString().split(/\r?\n/)) {
-  maxWordLen = Math.max(word.length, maxWordLen);
-
-  let subtree = tree;
+  let subtree = dictTree;
   for (const char of word) {
     if (!subtree.has(char)) {
       subtree.set(char, new Map());
@@ -17,13 +14,12 @@ for (const word of fs.readFileSync(`${__dirname}/../../dict_en.txt`).toString().
   }
   subtree.set(true, true); // indicate the end of a word
 }
-console.log(maxWordLen);
-console.log(tree.get('w').get('o').get('o').get('d').get(true));
+console.log(dictTree.get('w').get('o').get('o').get('d').get(true));
 
-function getMatches(text, startIndex) {
+function getDictMatches(text, startIndex) {
   const matches = [];
 
-  let subtree = tree;
+  let subtree = dictTree;
   for (let i = startIndex; i < text.length; i++) {
     const char = text[i];
     if (!subtree.has(char)) { break; }
@@ -36,22 +32,22 @@ function getMatches(text, startIndex) {
 
   return matches.length > 0 ? matches : null;
 }
-console.log(getMatches('thousandfoldlyabc', 0));
-console.log(getMatches('thousandfoldlyabc', 8));
-console.log(getMatches(':-)', 0));
+console.log(getDictMatches('thousandfoldlyabc', 0));
+console.log(getDictMatches('thousandfoldlyabc', 8));
+console.log(getDictMatches(':-)', 0));
 
-function getGreedySolution(src) {
+function getGreedySolution(text) {
   let result = [];
 
-  for (let i = 0; i < src.length; i++) {
-    const matches = getMatches(src, i);
+  for (let i = 0; i < text.length; i++) {
+    const matches = getDictMatches(text, i);
     if (matches) {
       const bestMatch = matches[matches.length - 1];
       result.push(bestMatch);
       i += bestMatch.length;
       i--;
     } else {
-      result.push(src[i]);
+      result.push(text[i]);
     }
   }
 
@@ -60,23 +56,23 @@ function getGreedySolution(src) {
 console.log(getGreedySolution('thisisatest'));
 console.log(getGreedySolution('thousandfoldlyisastrangeword'));
 
-function getSolutionsTree(src) {
-  if (src.length < 2) {
-    return new Map([[src, new Map()]]);
+function getSolutionsTree(text) {
+  if (text.length < 2) {
+    return new Map([[text, new Map()]]);
   }
 
   const solutionsBySrcLen = new Map();
-  for (let i = 0; i <= src.length; i++) {
+  for (let i = 0; i <= text.length; i++) {
     solutionsBySrcLen.set(i, new Map());
   }
 
-  for (let i = 0; i < src.length; i++) {
-    for (const match of (getMatches(src, i) || [src[i]])) {
+  for (let i = 0; i < text.length; i++) {
+    for (const match of (getDictMatches(text, i) || [text[i]])) {
       solutionsBySrcLen.get(i + match.length).set(match, solutionsBySrcLen.get(i));
     }
   }
 
-  return solutionsBySrcLen.get(src.length);
+  return solutionsBySrcLen.get(text.length);
 }
 
 function unwindSolutionsTree(tree) {
