@@ -15,7 +15,7 @@ for (const word of fs.readFileSync(`${__dirname}/../../dict_en.txt`).toString().
     }
     subtree = subtree.get(char);
   }
-  subtree.set(true, true); // indicate and of a word
+  subtree.set(true, true); // indicate the end of a word
 }
 console.log(maxWordLen);
 console.log(tree.get('w').get('o').get('o').get('d').get(true));
