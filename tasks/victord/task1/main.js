@@ -62,7 +62,7 @@ console.log(getGreedySolution('thousandfoldlyisastrangeword'));
 
 function getAllSolution(src) {
   if (src.length < 2) {
-    return src;
+    return [src];
   }
 
   const solutionsBySrcLen = new Array(src.length + 1);
