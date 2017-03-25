@@ -56,19 +56,32 @@ function restoreSpacesGreedily(text) {
 console.log(restoreSpacesGreedily('thisisatest'));
 console.log(restoreSpacesGreedily('thousandfoldlyisastrangeword'));
 
-function getWordsTree(text) {
-  if (text.length < 2) {
-    return new Map([[text, new Map()]]);
-  }
+function getWordsDistance(first, second) {
+  // TODO improve
+  return 1;
+}
 
+function getWordsTree(text) {
   const wordsBySrcLen = new Map();
   for (let i = 0; i <= text.length; i++) {
-    wordsBySrcLen.set(i, new Map());
+    const words = new Map();
+    words.closestWord = '';
+    words.closestDistance = i === 0 ? 0 : Infinity;
+
+    wordsBySrcLen.set(i, words);
   }
 
   for (let i = 0; i < text.length; i++) {
     for (const match of (getDictMatches(text, i) || [text[i]])) {
-      wordsBySrcLen.get(i + match.length).set(match, wordsBySrcLen.get(i));
+      const prevWords = wordsBySrcLen.get(i);
+      const prevWordsAndMatch = wordsBySrcLen.get(i + match.length);
+      prevWordsAndMatch.set(match, prevWords);
+
+      const distance = prevWords.closestDistance + getWordsDistance(prevWords.closestWord, match);
+      if (distance < prevWordsAndMatch.closestDistance) {
+        prevWordsAndMatch.closestWord = match;
+        prevWordsAndMatch.closestDistance = distance;
+      }
     }
   }
 
@@ -97,6 +110,22 @@ function unwindWordsTree(tree) {
 console.log(unwindWordsTree(getWordsTree('t')));
 console.log(unwindWordsTree(getWordsTree('thisisatest')));
 
-function getBestTextFromWordsTree(tree) {
-  // TODO
+function getOptimalFromWordsTree(tree) {
+  const text = [];
+
+  let subtree = tree;
+  while (subtree) {
+    text.unshift(subtree.closestWord);
+    subtree = subtree.get(subtree.closestWord);
+  }
+
+  return text.join(' ');
 }
+console.log(getOptimalFromWordsTree(getWordsTree('t')));
+console.log(getOptimalFromWordsTree(getWordsTree('thisisatest')));
+console.log(getOptimalFromWordsTree(getWordsTree('111.aaa.bbb.3333@comisateste-mail.')));
+console.log(getOptimalFromWordsTree(getWordsTree('colorlessgreenideassleepfuriously')));
+console.log(getOptimalFromWordsTree(getWordsTree('buffalobuffalobuffalobuffalobuffalobuffalobuffalobuffalo')));
+
+const frankenstein = fs.readFileSync(`${__dirname}/frankenstein.txt`).toString().replace(/\s+/g, '').toLocaleLowerCase();
+console.log(getOptimalFromWordsTree(getWordsTree(frankenstein)).slice(0, 10000) + '...');
