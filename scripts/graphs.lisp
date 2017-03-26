@@ -33,6 +33,11 @@
 
 ;;; drawing a graph
 
+(defun draw-graph (graph path)
+  "Draws GRAPH to a PNG file at PATH."
+  (cl-dot:dot-graph graph path :format :png)
+  path)
+
 (defmethod cl-dot:graph-object-node ((graph graph) object)
   (make-instance 'cl-dot:node
                  :attributes (list :label (format nil "~A" (id object)))))
