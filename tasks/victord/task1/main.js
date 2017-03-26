@@ -3,6 +3,9 @@
 const fs = require('fs');
 
 const dictTree = new Map();
+function callAndPrint(lambda) {
+  console.log(`${lambda}:`.slice(6), lambda());
+}
 
 for (const word of fs.readFileSync(`${__dirname}/../../dict_en.txt`).toString().split(/\r?\n/)) {
   let subtree = dictTree;
@@ -14,7 +17,7 @@ for (const word of fs.readFileSync(`${__dirname}/../../dict_en.txt`).toString().
   }
   subtree.set(true, true); // indicate the end of a word
 }
-console.log(dictTree.get('w').get('o').get('o').get('d').get(true));
+callAndPrint(() => dictTree.get('w').get('o').get('o').get('d').get(true));
 
 function getDictMatches(text, startIndex) {
   const matches = [];
@@ -32,9 +35,9 @@ function getDictMatches(text, startIndex) {
 
   return matches.length > 0 ? matches : null;
 }
-console.log(getDictMatches('thousandfoldlyabc', 0));
-console.log(getDictMatches('thousandfoldlyabc', 8));
-console.log(getDictMatches(':-)', 0));
+callAndPrint(() => getDictMatches('thousandfoldlyabc', 0));
+callAndPrint(() => getDictMatches('thousandfoldlyabc', 8));
+callAndPrint(() => getDictMatches(':-)', 0));
 
 function restoreSpacesGreedily(text) {
   let result = [];
@@ -53,8 +56,8 @@ function restoreSpacesGreedily(text) {
 
   return result.join(' ');
 }
-console.log(restoreSpacesGreedily('thisisatest'));
-console.log(restoreSpacesGreedily('thousandfoldlyisastrangeword'));
+callAndPrint(() => restoreSpacesGreedily('thisisatest'));
+callAndPrint(() => restoreSpacesGreedily('thousandfoldlyisastrangeword'));
 
 function getWordsDistance(first, second) {
   // TODO improve
@@ -107,8 +110,8 @@ function unwindWordsTree(tree) {
 
   return unwinded;
 }
-console.log(unwindWordsTree(getWordsTree('t')));
-console.log(unwindWordsTree(getWordsTree('thisisatest')));
+callAndPrint(() => unwindWordsTree(getWordsTree('t')));
+callAndPrint(() => unwindWordsTree(getWordsTree('thisisatest')));
 
 function getOptimalFromWordsTree(tree) {
   const text = [];
@@ -119,13 +122,14 @@ function getOptimalFromWordsTree(tree) {
     subtree = subtree.get(subtree.closestWord);
   }
 
-  return text.join(' ');
+  return text.join(' ').slice(1);
 }
-console.log(getOptimalFromWordsTree(getWordsTree('t')));
-console.log(getOptimalFromWordsTree(getWordsTree('thisisatest')));
-console.log(getOptimalFromWordsTree(getWordsTree('111.aaa.bbb.3333@comisateste-mail.')));
-console.log(getOptimalFromWordsTree(getWordsTree('colorlessgreenideassleepfuriously')));
-console.log(getOptimalFromWordsTree(getWordsTree('buffalobuffalobuffalobuffalobuffalobuffalobuffalobuffalo')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('t')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('thisisatest')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('thousandfoldlyisastrangeword')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('111.aaa.bbb.3333@comisateste-mail.')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('colorlessgreenideassleepfuriously')));
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree('buffalobuffalobuffalobuffalobuffalobuffalobuffalobuffalo')));
 
 const frankenstein = fs.readFileSync(`${__dirname}/frankenstein.txt`).toString().replace(/\s+/g, '').toLocaleLowerCase();
-console.log(getOptimalFromWordsTree(getWordsTree(frankenstein)).slice(0, 10000) + '...');
+callAndPrint(() => getOptimalFromWordsTree(getWordsTree(frankenstein)).slice(0, 10000) + '...');
