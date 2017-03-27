@@ -4,6 +4,8 @@ public class DirectedEdge {
     private double weight;
 
     public DirectedEdge(int from, int to, double weight) {
+        if (from < 0) throw new IllegalArgumentException("Vertex can't be less than zero");
+        if (to < 0) throw new IllegalArgumentException("Vertex can't be less than zero");
         this.from = from;
         this.to = to;
         this.weight = weight;
