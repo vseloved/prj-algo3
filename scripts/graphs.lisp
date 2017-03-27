@@ -1,33 +1,36 @@
 (ql:quickload :cl-dot)
 (ql:quickload :rutilsx)
 
-(use-package :rutil)
+(use-package :rutilsx)
+
+(defstruct (edge (:conc-name nil))
+  src dst label)
 
 (defstruct (node (:conc-name nil)
                  (:print-object
                   (lambda (node stream)
-                    (format stream ":~A(~{~A~^ ~})"
+                    (format stream ">~A(~{~A~^ ~})"
                             (id node)
-                            (mapcar (lambda (node-weight)
-                                      (format nil "~A~@[/~A~]"
-                                              (id (lt node-weight))
-                                              (rt node-weight)))
+                            (mapcar (lambda (edge)
+                                      (format nil "->~A~@[/~A~]"
+                                              (id (dst edge))
+                                              (label edge)))
                                     (children node))))))
-  id
-  children)
+  id children)
 
-(defclass graph ()
-  ((nodes :initarg :nodes :initform (make-hash-table) :accessor nodes)))
+(defstruct (graph (:conc-name nil))
+  (nodes (make-hash-table)))
 
-(defun make-graph (&rest edges)
-  (let ((g (make-instance 'graph)))
+(defun graph (&rest edges)
+  (let ((g (make-graph)))
     (dolist (edge edges)
-      (with (((head-id child-id &optional weight) edge)
-             (head (getsethash head-id (nodes g)
-                               (make-node :id head-id)))
-             (child (getsethash child-id (nodes g)
-                                (make-node :id child-id))))
-        (push (pair child weight) (children head))))
+      (with (((src-id dst-id &optional label) edge)
+             (src (getsethash src-id (nodes g)
+                              (make-node :id src-id)))
+             (dst (getsethash dst-id (nodes g)
+                              (make-node :id dst-id))))
+        (push (make-edge :src src :dst dst :label label)
+              (children src))))
     g))
 
 
@@ -45,28 +48,25 @@
 (defmethod cl-dot:graph-object-edges ((graph graph))
   (let ((edges (make-array 0 :adjustable t :fill-pointer t)))
     (maphash (lambda (k v)
-               (dolist (node-weight (children v))
-                 (vector-push-extend (list k (id (lt node-weight))
-                                           :label (rt node-weight))
-                                     edges)))
+               (dolist (edge (children v))
+                 (vector-push-extend edge edges)))
              (nodes graph))
     edges))
 
 (defmethod cl-dot::nodes-of ((graph graph))
-  (let (rez)
-    (maphash (lambda (k v)
-               (push v rez))
+  (let (nodes)
+    (maphash (lambda (id node)
+               (push node nodes))
              (nodes graph))
-    (reverse rez)))
+    (reverse nodes)))
 
 (defmethod cl-dot::edges-of ((graph graph))
-  (let (rez)
-    (maphash (lambda (k v)
-               (dolist (node-weight (children v))
-                 (push (list k (id (lt node-weight)) (rt node-weight))
-                       rez)))
+  (let (edges)
+    (maphash (lambda (id node)
+               (dolist (edge (children node))
+                 (push edge edges)))
              (nodes graph))
-    (reverse rez)))
+    (reverse edges)))
 
 (setf cl-dot::*graph-attributes*
       (cons (list :rankdir 'cl-dot::text)
@@ -84,20 +84,20 @@
 (defmethod cl-dot::attributes-of ((node node))
   nil)
   
-(defmethod cl-dot::source-of ((edge list))
-  (first edge))
+(defmethod cl-dot::source-of ((edge edge))
+  (src edge))
 
-(defmethod cl-dot::source-port-of ((edge list))
+(defmethod cl-dot::source-port-of ((edge edge))
   nil)
 
-(defmethod cl-dot::target-of ((edge list))
-  (second edge))
+(defmethod cl-dot::target-of ((edge edge))
+  (dst edge))
 
-(defmethod cl-dot::target-port-of ((edge list))
+(defmethod cl-dot::target-port-of ((edge edge))
   nil)
 
-(defmethod cl-dot::attributes-of ((edge list))
-  (list :label (third edge)))
+(defmethod cl-dot::attributes-of ((edge edge))
+  (list :label (label edge)))
 
 
 ;;; topological sort
@@ -119,6 +119,5 @@
   (vector-push-extend node rez)
   (when (and (not recursive-p)
              (> (hash-table-count unvisited) 0))
-    ;; some more unvisited nodes remain
     (topo-sort graph unvisited rez))
   rez)
