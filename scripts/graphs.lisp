@@ -49,10 +49,6 @@
                        (label edge))))
              (nodes g))
     mat))
-             
-
-(defun graph->incmat (g)
-  )
 
 
 ;;; drawing a graph
