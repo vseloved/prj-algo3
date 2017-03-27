@@ -11,11 +11,11 @@ public class DirectedEdge {
         this.weight = weight;
     }
 
-    public int getFrom() {
+    public int From() {
         return from;
     }
 
-    public int getTo() {
+    public int To() {
         return to;
     }
 
