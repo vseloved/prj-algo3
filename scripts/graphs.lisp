@@ -9,14 +9,14 @@
 (defstruct (node (:conc-name nil)
                  (:print-object
                   (lambda (node stream)
-                    (format stream ">~A(~{~A~^ ~})"
+                    (format stream "#~A{~{~A~^ ~}}"
                             (id node)
                             (mapcar (lambda (edge)
-                                      (format nil "->~A~@[/~A~]"
+                                      (format nil "~A~@[/~A~]"
                                               (id (dst edge))
                                               (label edge)))
-                                    (children node))))))
-  id children)
+                                    (edges node))))))
+  id edges)
 
 (defstruct (graph (:conc-name nil))
   (nodes (make-hash-table)))
@@ -30,8 +30,29 @@
              (dst (getsethash dst-id (nodes g)
                               (make-node :id dst-id))))
         (push (make-edge :src src :dst dst :label label)
-              (children src))))
+              (edges src))))
     g))
+
+(defun adj-mat (g)
+  (with ((node-count (hash-table-count (nodes g)))
+         (mat (make-array (list node-count node-count)))
+         (ids (make-hash-table))
+         (i -1))
+    (maphash (lambda (id node)
+               (setf (gethash id ids) (incf i)))
+             (nodes g))
+    (maphash (lambda (id node)
+               (dolist (edge (edges node))
+                 (setf (aref mat
+                             (gethash id ids)
+                             (gethash (id (dst edge)) ids))
+                       (label edge))))
+             (nodes g))
+    mat))
+             
+
+(defun graph->incmat (g)
+  )
 
 
 ;;; drawing a graph
@@ -47,8 +68,8 @@
 
 (defmethod cl-dot:graph-object-edges ((graph graph))
   (let ((edges (make-array 0 :adjustable t :fill-pointer t)))
-    (maphash (lambda (k v)
-               (dolist (edge (children v))
+    (maphash (lambda (id node)
+               (dolist (edge (edges node))
                  (vector-push-extend edge edges)))
              (nodes graph))
     edges))
@@ -63,7 +84,7 @@
 (defmethod cl-dot::edges-of ((graph graph))
   (let (edges)
     (maphash (lambda (id node)
-               (dolist (edge (children node))
+               (dolist (edge (edges node))
                  (push edge edges)))
              (nodes graph))
     (reverse edges)))
@@ -106,16 +127,15 @@
                           (unvisited (copy-hash-table (nodes graph)))
                           (rez (make-array 0 :adjustable t :fill-pointer t))
                           (node (block take-first
-                                  (maphash (lambda (k v)
-                                             (return-from take-first v))
+                                  (maphash (lambda (id node)
+                                             (return-from take-first node))
                                            unvisited))
                                 recursive-p))
   (remhash (id node) unvisited)
-  (dolist (node-weight (children node))
-    (let ((child (first node-weight) ))
+  (dolist (edge (edges node))
+    (let ((child (dst edge)))
       (when (gethash (id child) unvisited)
         (topo-sort graph unvisited rez child))))
-  (print node)
   (vector-push-extend node rez)
   (when (and (not recursive-p)
              (> (hash-table-count unvisited) 0))
