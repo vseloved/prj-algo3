@@ -15,6 +15,7 @@
                    :when (eql ,vertex (parent edge))
                    :collect (child edge))))
     (let ((visited  (make-hash-table))
+          (traverse (list))
           (vertices (remove-duplicates
                      (loop
                         :for edge :in adj-list-graph
@@ -25,11 +26,12 @@
                     :for n :in (childs vertex)
                     :do (unless (gethash n visited)
                           (visit n)))
+                 (push vertex traverse)
                  (setf (gethash vertex visited) 'visited)))
         (loop
            :for v :in vertices
            :do (unless (gethash v visited)
                  (visit v))))
       (loop
-         :for h :being :each hash-key :in visited
-         :collect h))))
+         :for v :in (reverse traverse)
+         :collect v))))

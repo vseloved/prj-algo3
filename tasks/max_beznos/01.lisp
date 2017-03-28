@@ -55,7 +55,7 @@
                            (let* ((hint (find-if (lambda (h) (char= (first h) (char text 0)))
                                                  hint-list))
                                   (entry-index (match-entry dictionary-array text
-                                                            :start (if start start (second hint))
+                                                            :start (or start (second hint))
                                                             :end   (third hint))))
                              (cond ((and start (not entry-index)))
                                    (entry-index
