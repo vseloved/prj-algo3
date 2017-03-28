@@ -10,44 +10,52 @@
                  (:print-object
                   (lambda (node stream)
                     (format stream "#~A{~{~A~^ ~}}"
-                            (id node)
+                            (name node)
                             (mapcar (lambda (edge)
                                       (format nil "~A~@[/~A~]"
-                                              (id (dst edge))
+                                              (name (dst edge))
                                               (label edge)))
                                     (edges node))))))
-  id edges)
+  id name edges)
 
 (defstruct (graph (:conc-name nil))
-  (nodes (make-hash-table)))
+  (nodes (make-hash-table :test 'equal)))
 
 (defun graph (&rest edges)
-  (let ((g (make-graph)))
+  (let ((g (make-graph))
+        (i -1))
     (dolist (edge edges)
-      (with (((src-id dst-id &optional label) edge)
-             (src (getsethash src-id (nodes g)
-                              (make-node :id src-id)))
-             (dst (getsethash dst-id (nodes g)
-                              (make-node :id dst-id))))
-        (push (make-edge :src src :dst dst :label label)
+      (with (((src-name dst-name &optional edge-label) edge)
+             (src (getsethash src-name (nodes g)
+                              (make-node :id (incf i) :name src-name)))
+             (dst (getsethash dst-name (nodes g)
+                              (make-node :id (incf i) :name dst-name))))
+        (push (make-edge :src src :dst dst :label edge-label)
               (edges src))))
     g))
 
 (defun adj-mat (g)
   (with ((node-count (hash-table-count (nodes g)))
-         (mat (make-array (list node-count node-count)))
-         (ids (make-hash-table))
-         (i -1))
-    (maphash (lambda (id node)
-               (setf (gethash id ids) (incf i)))
-             (nodes g))
-    (maphash (lambda (id node)
+         (mat (make-array (list node-count node-count)
+                          :initial-element most-positive-fixnum)))
+         ;; (display (make-array (list (1+ node-count) (1+ node-count)))))
+    (maphash (lambda (name node)
+               (setf (aref mat (id node) (id node)) 0)
                (dolist (edge (edges node))
                  (setf (aref mat
-                             (gethash id ids)
-                             (gethash (id (dst edge)) ids))
+                             (id node)
+                             (id (dst edge)))
                        (label edge))))
              (nodes g))
+    ;; (maphash (lambda (name node)
+    ;;            (setf (aref display 0 (1+ (id node))) name
+    ;;                  (aref display (1+ (id node)) 0) name)
+    ;;            (dolist (edge (edges node))
+    ;;              (setf (aref display (1+ (id node)) (1+ (id (dst edge))))
+    ;;                    (setf (aref mat (id node) (id (dst edge)))
+    ;;                          (label edge)))))
+    ;;          (nodes g))
+    ;; (print display)
     mat))
 
 
@@ -60,7 +68,7 @@
 
 (defmethod cl-dot:graph-object-node ((graph graph) object)
   (make-instance 'cl-dot:node
-                 :attributes (list :label (format nil "~A" (id object)))))
+                 :attributes (list :label (princ-to-string (name object)))))
 
 (defmethod cl-dot:graph-object-edges ((graph graph))
   (let ((edges (make-array 0 :adjustable t :fill-pointer t)))
@@ -72,14 +80,14 @@
 
 (defmethod cl-dot::nodes-of ((graph graph))
   (let (nodes)
-    (maphash (lambda (id node)
+    (maphash (lambda (name node)
                (push node nodes))
              (nodes graph))
     (reverse nodes)))
 
 (defmethod cl-dot::edges-of ((graph graph))
   (let (edges)
-    (maphash (lambda (id node)
+    (maphash (lambda (name node)
                (dolist (edge (edges node))
                  (push edge edges)))
              (nodes graph))
@@ -93,9 +101,9 @@
   (list :rankdir "LR"))
 
 (defmethod cl-dot::id-of ((node node))
-  (id node))
+  (name node))
 
-(defmethod cl-dot::id-of ((node number))
+(defmethod cl-dot::id-of (node)
   node)
 
 (defmethod cl-dot::attributes-of ((node node))

@@ -48,10 +48,10 @@
   vec)
 
 (defun heap-down (vec beg &optional (end (- (length vec) 1)))
-  (when (< (hleft beg) end)
+  (when (<= (hleft beg) end)
     (let ((child (if (or (>= (hright beg) end)
-                         (> (aref vec (hleft i))
-                            (aref vec (hright i))))
+                         (> (aref vec (hleft beg))
+                            (aref vec (hright beg))))
                      (hleft beg)
                      (hright beg))))
       (when (> (aref vec child) (aref vec beg))
@@ -60,11 +60,10 @@
   vec)
 
 (defun heap-push (node vec)
-  (vector-push-extend node vec)
-  (heap-up vec (1- (length vec))))
+  (heap-up vec (vector-push-extend node vec)))
 
 (defun heap-pop (vec)
   (rotatef (aref vec 0) (aref vec (- (length vec) 1)))
   (let ((rez (vector-pop vec)))
-    (heap-down vec)
+    (heap-down vec 0)
     rez))
