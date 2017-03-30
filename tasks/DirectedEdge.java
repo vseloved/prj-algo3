@@ -22,4 +22,9 @@ public class DirectedEdge {
     public double Weight() {
         return weight;
     }
+
+    public String toString() {
+        return from + "->" + to + " " + String.format("%5.2f", weight);
+    }
+
 }

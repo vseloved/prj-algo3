@@ -1,11 +1,7 @@
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 public class EdgeWeightedDigraph {
@@ -14,14 +10,20 @@ public class EdgeWeightedDigraph {
     private int E;
 
     private List<Set<DirectedEdge>> adj = new ArrayList<>();
-    private List<String> vertexValues = new ArrayList<>();
-    private Map<String, Integer> valueMappings = new HashMap<>();
-    private Queue<Integer> postorder = new ArrayDeque<>();
+    private List<Integer> postOrder = new ArrayList<>();
     private boolean[] marked;
 
     public EdgeWeightedDigraph() {
         this.V = 0;
         this.E = 0;
+    }
+
+    public EdgeWeightedDigraph(int V) {
+        this.V = V;
+        this.E = 0;
+        for (int v = 0; v < V; v++) {
+            adj.add(new HashSet<DirectedEdge>());
+        }
     }
 
     public int getV() {
@@ -32,28 +34,26 @@ public class EdgeWeightedDigraph {
         return E;
     }
 
-    public void addVertex(String value){
-        vertexValues.add(value);
-        valueMappings.put(value, V);
+    public int addVertex() {
         adj.add(new HashSet<DirectedEdge>());
         V++;
+        return V-1;
     }
 
-    public void addEdge(String from, String to, double weight) {
+    public void addEdge(int from, int to, double weight) {
         validateVertex(from);
         validateVertex(to);
-        int vFrom = valueMappings.get(from);
-        int vTo = valueMappings.get(to);
-        adj.get(vFrom).add(new DirectedEdge(vFrom, vTo, weight));
+        adj.get(from).add(new DirectedEdge(from, to, weight));
         E++;
     }
 
-    private Iterable<DirectedEdge> adj(int v) {
+    public Iterable<DirectedEdge> adj(int v) {
+        validateVertex(v);
         return adj.get(v);
     }
 
-    private void validateVertex(String v) {
-        if (valueMappings.get(v) == null) {
+    private void validateVertex(int v) {
+        if (adj.get(v) == null) {
             throw new IllegalArgumentException("vertex " + v + " does not exist");
         }
     }
@@ -75,26 +75,22 @@ public class EdgeWeightedDigraph {
                 dfs(to);
             }
         }
-        postorder.add(v);
+        postOrder.add(v);
     }
 
     public Iterable<Integer> topologicalOrder() {
         dfs();
-        Deque<Integer> reversePostOrder = new ArrayDeque<>();
-        for (int v : postorder) {
-            reversePostOrder.addFirst(v);
-        }
-
-        return reversePostOrder;
+        Collections.reverse(postOrder);
+        return postOrder;
     }
 
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append(V + " " + E + NEWLINE);
         for (int v = 0; v < V; v++) {
-            s.append(vertexValues.get(v) + ": ");
+            s.append(v + ": ");
             for (DirectedEdge e : adj.get(v)) {
-                s.append(vertexValues.get(e.From()) + "->" + vertexValues.get(e.To()) + " " + e.Weight());
+                s.append(e + " ");
             }
             s.append(NEWLINE);
         }

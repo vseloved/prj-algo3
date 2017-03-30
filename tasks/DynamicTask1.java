@@ -96,14 +96,11 @@ public class DynamicTask1 {
         }*/
 
 
-        EdgeWeightedDigraph DAG = new EdgeWeightedDigraph();
-        DAG.addVertex("1");DAG.addVertex("2");DAG.addVertex("3");DAG.addVertex("4");DAG.addVertex("5");DAG.addVertex("6");
-        DAG.addVertex("7");DAG.addVertex("8");
-        DAG.addEdge("1", "2", 7);DAG.addEdge("1", "3", 3);DAG.addEdge("3", "4", 2);DAG.addEdge("3", "5", 1);DAG.addEdge("2", "4", 8);
-        DAG.addEdge("2", "5", 3);DAG.addEdge("5", "4", 9);DAG.addEdge("5", "6", 1);DAG.addEdge("4", "6", 2);DAG.addEdge("7", "8", 10);
-        for (int i : DAG.topologicalOrder()){
-            System.out.print(i + " ");
-        }
-        //System.out.println(DAG);
+        EdgeWeightedDigraph DAG = new EdgeWeightedDigraph(9);
+        DAG.addEdge(1, 2, 7);DAG.addEdge(1, 3, 3);DAG.addEdge(2, 4, 8);DAG.addEdge(2, 5, 3);DAG.addEdge(3, 4, 2);
+        DAG.addEdge(3, 5, 1);DAG.addEdge(4, 6, 2);DAG.addEdge(5, 4, 9);DAG.addEdge(5, 6, 1);DAG.addEdge(7, 8, 10);
+        DAG.addEdge(2, 3, 1);
+
+        System.out.println(DAG.topologicalOrder());
     }
 }
