@@ -1,0 +1,7 @@
+hi my	15
+my name	32
+name is	85
+is jeremy	55
+himy name	1
+myname is	5
+hi myname	2

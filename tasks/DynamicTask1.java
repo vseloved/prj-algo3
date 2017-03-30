@@ -2,11 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /*
 Слова читаем из файла и храним в HashSet words. Добавление и поиск О(1).
@@ -23,6 +19,22 @@ backtrack - вектор множеств, backtrack[i] хранит множе�
 префиксом и прекратить внутренний цикл заполнения backtrack если таких слов нет. Это позволит заполнить backtrack за О(n * k) где k константа.
 */
 public class DynamicTask1 {
+    private static Map<String, Long> readFreqsFromFile(String path) {
+        Map<String, Long> words = new HashMap<>();
+        File file = new File(DynamicTask1.class.getResource(path).getFile());
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] entry = line.split("\t");
+                words.put(entry[0], Long.parseLong(entry[1]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return words;
+    }
+
     private static Set<String> readWordsFromFile(String path) {
         Set<String> words = new HashSet<>();
         File file = new File(DynamicTask1.class.getResource(path).getFile());
@@ -67,7 +79,13 @@ public class DynamicTask1 {
     }
 
     public static void main(String[] args) {
-       /* Set<String> words = readWordsFromFile("dict_en.txt");
+        Set<String> words  = readWordsFromFile("test.txt");
+        Map<String, Long> wordsFreq = readFreqsFromFile("test_2gram.txt");
+        long totalCount = 0;
+        for (long freq : wordsFreq.values()) {
+            totalCount += freq;
+        }
+        System.out.println(totalCount);
         String inputText = "himynameisjeremy";
         char[] charArray = inputText.toCharArray(); // O(1)
 
@@ -93,14 +111,13 @@ public class DynamicTask1 {
         ArrayList<Deque<String>> segmentations = getSegmentations(charArray, backTrack, charArray.length - 1, memo);
         for (Deque segmentation : segmentations) {
             System.out.println(segmentation);
-        }*/
+        }
 
-
-        EdgeWeightedDigraph DAG = new EdgeWeightedDigraph(9);
+        /*EdgeWeightedDigraph DAG = new EdgeWeightedDigraph(9);
         DAG.addEdge(1, 2, 7);DAG.addEdge(1, 3, 3);DAG.addEdge(2, 4, 8);DAG.addEdge(2, 5, 3);DAG.addEdge(3, 4, 2);
         DAG.addEdge(3, 5, 1);DAG.addEdge(4, 6, 2);DAG.addEdge(5, 4, 9);DAG.addEdge(5, 6, 1);DAG.addEdge(7, 8, 10);
         DAG.addEdge(2, 3, 1);
 
-        System.out.println(DAG.topologicalOrder());
+        System.out.println(DAG.topologicalOrder());*/
     }
 }
