@@ -5,6 +5,4 @@ is
 jeremy
 himy
 myname
-je
-h
-i
+isjeremy

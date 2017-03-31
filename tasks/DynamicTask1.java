@@ -6,12 +6,12 @@ import java.util.*;
 
 /*
 Слова читаем из файла и храним в HashSet words. Добавление и поиск О(1).
-backtrack - вектор множеств, backtrack[i] хранит множество длин строк, которые заканчиваются на i-том символе входной строки.
-Заполняем backtrack проходя по входной строке за О(n**2).
-Делаем обратный проход рекурсивно начиная с конца backtrack чтобы собрать все сегментации слов. Запоминаем результаты рекурсивных
-вызовов в вектор memo, потому каждая подзадача вычисляется только один раз. Количество подзадач - n. Сложность решения подзадачи - О(k) где k длина слова,
-длина слова в моем понимании величина статистическая, со срелним константным значением, то есть в нашем случае О(k) -> О(1).
-Таким обратный проход работает за О(n)
+DAG - направленный граф. Узлы - слова, направленные ребра - биграм, вес ребра = -1 * log(P(биграм))
+backtrack - вектор множеств, backtrack[i] хранит множество индексов узлов графа (узел графа -> слово), которые заканчиваются на i-том символе входной строки.
+Заполняем backtrack проходя по входной строке за О(n**2). По ходу заполнения также заполняем DAG узлами и ребрами.
+vertexStrings - ассоциативный массив, хранит соответствия между узлом DAG и словом.
+Ищем кратчаший путь в DAG из корневого узла во все узлы, затем сравниваем вес путей в те узлы, из которых не исходят ребра (слова, стоящие в конце текста),
+и формируем обратный путь. Сложность O(E+V).
 Возможные оптимизации -
 1. Узнать у словаря какая длина самого длинного слова и делать внутренний цикл заполнения backtrack до этого значения.
 Это позволит заполнить backtrack за О(n * k) где k константа.
@@ -78,46 +78,99 @@ public class DynamicTask1 {
         return newResult;
     }
 
-    public static void main(String[] args) {
-        Set<String> words  = readWordsFromFile("test.txt");
-        Map<String, Long> wordsFreq = readFreqsFromFile("test_2gram.txt");
+    private static double getWeight(long freq, long total){
+        double percentage = (double)freq/total;
+        return -Math.log(percentage);
+    }
+
+    private static long getTotalBigramCount(Map<String, Long> bigram) {
         long totalCount = 0;
-        for (long freq : wordsFreq.values()) {
+        for (long freq : bigram.values()) {
             totalCount += freq;
         }
-        System.out.println(totalCount);
-        String inputText = "himynameisjeremy";
-        char[] charArray = inputText.toCharArray(); // O(1)
 
-        ArrayList<HashSet<Integer>> backTrack = new ArrayList<>(charArray.length);
-        ArrayList<ArrayList<Deque<String>>> memo = new ArrayList<>(charArray.length);
-        for (char aCharArray : charArray) {
-            backTrack.add(new HashSet<Integer>());
-            memo.add(new ArrayList<Deque<String>>());
+        return totalCount;
+    }
+
+    private static int shortestPathIndex(List<Integer> lastWords, double[] weights) {
+        double min = Double.POSITIVE_INFINITY;
+        int index = 0;
+        for (int i : lastWords) {
+            if (min > weights[i]) {
+                min = weights[i];
+                index = i;
+            }
         }
 
-        for (int i = 0; i < charArray.length; i++) {
+        return index;
+    }
+
+    public static void main(String[] args) {
+        String inputText = "himynameisjeremy";
+        Set<String> words  = readWordsFromFile("test.txt");
+        Map<String, Long> bigram = readFreqsFromFile("test_2gram.txt");
+        long totalCount = getTotalBigramCount(bigram);
+        Map<Integer, String> vertexStrings = new HashMap<>();
+        ArrayList<HashSet<Integer>> backTrack = new ArrayList<>(inputText.length());
+        EdgeWeightedDigraph DAG = new EdgeWeightedDigraph();
+        List<Integer> lastWords = new ArrayList<>();
+
+        for (int i = 0; i < inputText.length(); i++) {
+            backTrack.add(new HashSet<Integer>());
+        }
+
+        int rootVertex = DAG.addVertex(); //корневой узел - начало строки
+
+        for (int i = 0; i < inputText.length(); i++) {
             if (i == 0 || backTrack.get(i - 1).size() != 0) { // O(1)
                 StringBuilder builder = new StringBuilder();
-                for (int j = i; j < charArray.length; j++) {
-                    builder.append(charArray[j]); // O(1)
+                for (int j = i; j < inputText.length(); j++) {
+                    builder.append(inputText.charAt(j)); // O(1)
                     if (words.contains(builder.toString())) { // builder.toString -> O(n)
-                        backTrack.get(j).add(builder.length()); // O(1)
+                        int to = DAG.addVertex();
+                        if (j == inputText.length() - 1) {
+                            lastWords.add(to);
+                        }
+                        vertexStrings.put(to, builder.toString());
+                        if (i == 0){
+                            DAG.addEdge(rootVertex, to, 0);
+                        } else {
+                            for (int v : backTrack.get(i - 1)) {
+                                Long pairFreq =  bigram.get(vertexStrings.get(v) + " " + vertexStrings.get(to));
+                                DAG.addEdge(v, to, getWeight((pairFreq == null) ? 0 : pairFreq, totalCount));
+                            }
+                        }
+                        backTrack.get(j).add(to); // O(1)
                     }
                 }
             }
         }
 
-        ArrayList<Deque<String>> segmentations = getSegmentations(charArray, backTrack, charArray.length - 1, memo);
-        for (Deque segmentation : segmentations) {
-            System.out.println(segmentation);
+        //shortest path
+        double[] pathWeights = new double[DAG.getV()];
+        int[] paths = new int[DAG.getV()];
+        for (int path = 0; path < DAG.getV(); path++) {
+            pathWeights[path] = Double.POSITIVE_INFINITY;
+        }
+        pathWeights[0] = 0;
+        paths[0] = 0;
+        for (int from : DAG.topologicalOrder()) {
+            for (DirectedEdge adjVertex : DAG.adj(from)) {
+                int to = adjVertex.To();
+                double weight = adjVertex.Weight();
+                if (pathWeights[to] > pathWeights[from] + weight) {
+                    pathWeights[to] = pathWeights[from] + weight;
+                    paths[to] = from;
+                }
+            }
         }
 
-        /*EdgeWeightedDigraph DAG = new EdgeWeightedDigraph(9);
-        DAG.addEdge(1, 2, 7);DAG.addEdge(1, 3, 3);DAG.addEdge(2, 4, 8);DAG.addEdge(2, 5, 3);DAG.addEdge(3, 4, 2);
-        DAG.addEdge(3, 5, 1);DAG.addEdge(4, 6, 2);DAG.addEdge(5, 4, 9);DAG.addEdge(5, 6, 1);DAG.addEdge(7, 8, 10);
-        DAG.addEdge(2, 3, 1);
-
-        System.out.println(DAG.topologicalOrder());*/
+        Deque<String> segmentation = new ArrayDeque<>();
+        int v = shortestPathIndex(lastWords, pathWeights);
+        while (v > 0) {
+            segmentation.addFirst(vertexStrings.get(v));
+            v = paths[v];
+        }
+        System.out.println(segmentation);
     }
 }

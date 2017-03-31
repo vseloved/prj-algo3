@@ -5,3 +5,4 @@ is jeremy	55
 himy name	1
 myname is	5
 hi myname	2
+name isjeremy	1500
