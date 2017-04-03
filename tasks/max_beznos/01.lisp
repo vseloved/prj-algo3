@@ -7,8 +7,9 @@
 (defun load-dictionary (filename &key (head nil))
   (labels ((parse-dictionary-record (record)
              (multiple-value-bind (ngram rest-line-index)
-                 (let ((first-tab (or (position #\Tab record) 0)))
-                   (values (subseq record 0 first-tab)
+                 (let ((first-tab (or (position #\Tab record)
+                                      (length record))))
+                   (values (string-trim '(#\Return) (subseq record 0 first-tab))
                            first-tab))
                (let ((counts (loop
                                 :with start = rest-line-index
@@ -18,89 +19,110 @@
                                            (setf start next-start)
                                            x))))
                  (append (list (remove #\Space ngram)) counts)))))
-    (let ((dict-list
-           (with-open-file (is filename :direction :input)
-             (remove-if (lambda (s) (= 0 (length s)))
-                        (loop
-                           :for count  = 0 :then (1+ count)
-                           :for record = (read-line is nil '*eof*) :then (read-line is nil '*eof*)
-                           :until (or (eql record '*eof*)
-                                      (and head (= count head)))
-                           :collect (parse-dictionary-record record))))))
-      (make-array (list (length dict-list) 4)
-                  :initial-contents dict-list))))
+    (let ((dictionary-ht (make-hash-table :test 'equalp)))
+      (with-open-file (is filename :direction :input)
+        (loop
+           :for count  = 0 :then (1+ count)
+           :for record = (read-line is nil '*eof*) :then (read-line is nil '*eof*)
+           :until (or (eql record '*eof*)
+                      (and head (= count head)))
+           :do (let* ((parsed-record (parse-dictionary-record record))
+                      (ngram         (first parsed-record)))
+                 (unless (string= "" ngram)
+                   (setf (gethash ngram dictionary-ht) (butlast parsed-record))))))
+      dictionary-ht)))
 
-(defun collect-hint-list (dictionary-array-with-rates)
-  (let ((last-index (1- (first (array-dimensions dictionary-array-with-rates)))))
+(defun binary-search (start end predicate)
+  (let ((next-start (+ start (ceiling (- end start) 2)))
+        (next-end   (- end (floor (- end start) 2))))
+    (cond ((= start (1- end))
+           (values start end))
+          ((funcall predicate start next-end)
+           (binary-search start next-end predicate))
+          (t
+           (binary-search next-start end predicate)))))
+
+(defun graph-edge-index (v-index-from v-index-to vertices-count)
+  (+ (- v-index-to v-index-from)
+     (* v-index-from vertices-count)
+     (/ (* -1 v-index-from (1- v-index-from))
+        2)))
+
+(defun graph-vertex-index (edge-index vertices-count)
+  (flet ((hint (i)
+           (+ (* i vertices-count)
+              (/ (* -1 i (1- i))
+                 2)))
+         (binary-search (start end predicate)
+           (let ((next-start (+ start (ceiling (- end start) 2)))
+                 (next-end   (- end (floor (- end start) 2))))
+             (cond ((= start (1- end))
+                    (values start end))
+                   ((funcall predicate start next-end)
+                    (binary-search start next-end predicate))
+                   (t
+                    (binary-search next-start end predicate))))))
+    (let ((from (binary-search 0 vertices-count
+                               (lambda (start end)
+                                 (and (<= (hint start) edge-index)
+                                      (<= edge-index (hint end)))))))
+      (values from (+ from (- edge-index (hint from)))))))
+
+
+(defun segment (text &key dictionary-file)
+  (let* ((dictionary-ht    (load-dictionary dictionary-file))
+         (text-len         (length text))
+         (max-edge-index   (graph-edge-index (1- text-len) text-len text-len))
+         (graph            (make-array (1+ max-edge-index) :initial-element nil))
+         (precedence-ht    (make-hash-table)))
     (loop
-       with range-first-char = nil
-       with range-begin      = 0
-       with result           = (list)
-       for index from 0 to last-index
-       do (let ((entry (aref dictionary-array-with-rates index 0)))
-            (cond
-              ((= 0 (length entry)))
-              ((not range-first-char) (setf range-first-char (char entry 0)))
-              ((or (not (char= range-first-char (char entry 0)))
-                   (= index last-index))
-               (push (list range-first-char range-begin index)
-                     result)
-               (setf range-begin index)
-               (setf range-first-char (char entry 0)))))
-       finally (return (reverse result)))))
-
-(defun match-entry (dictionary-array-with-rates text &key start end (max-rate nil))
-  (when (and start end)
-    (if (not max-rate)
+       :for edge-index :from 1 :to max-edge-index
+       :do (multiple-value-bind (start end)
+               (graph-vertex-index edge-index text-len)
+             (multiple-value-bind (w found)
+                 (gethash (subseq text start end) dictionary-ht)
+               (when found
+                 (setf (aref graph edge-index)
+                       (or w 1))
+                 (pushnew start (gethash end precedence-ht))))))
+    (let ((relax-ht      (make-hash-table))
+          (segmentations (list)))
+      (macrolet ((make-relax-record (d p)
+                   `(make-array 2 :initial-contents (list ,d ,p))))
+        (setf (gethash 0 relax-ht) (make-relax-record 0 nil))
         (loop
-           :for index :from start :below end
-           :thereis (let ((entry (aref dictionary-array-with-rates index 0)))
-                      (cond ((and (<= (length entry) (length text))
-                                  (string= entry (subseq text 0 (length entry))))
-                             index))))
-        (loop
-           :with max-match-count-index = nil
-           :for index :from start :below end
-           :do (let ((entry (aref dictionary-array-with-rates index 0)))
-                 (when (and (<= (length entry) (length text))
-                            (string= entry (subseq text 0 (length entry)))
-                            (or (not max-match-count-index)
-                                (> (aref dictionary-array-with-rates index 2)
-                                   (aref dictionary-array-with-rates max-match-count-index 2))))
-                   (setf max-match-count-index index)))
-           :finally (return max-match-count-index)))))
-
-(defun segment (text &key dictionary-file (limit nil) (max-rate nil))
-  (let* ((dictionary-array (load-dictionary dictionary-file))
-         (hint-list        (collect-hint-list dictionary-array))
-         (segmentations    (list)))
-    (tagbody
-       (labels
-           ((collect-segmentations (text &key limit (segments (list)) (start nil))
-              (cond ((and limit
-                          (= limit (length segmentations)))
-                     (go :stop))
-                    (t
-                     (if (string= text "")
-                         (push segments segmentations)
-                         (let* ((hint (find-if (lambda (h) (char= (first h) (char text 0)))
-                                               hint-list))
-                                (entry-index (match-entry dictionary-array text
-                                                          :start    (or start (second hint))
-                                                          :end      (third hint)
-                                                          :max-rate max-rate)))
-                           (cond ((and start (not entry-index)))
-                                 (entry-index
-                                  (unless max-rate
-                                    (collect-segmentations text
-                                                           :limit limit
-                                                           :segments (copy-list segments)
-                                                           :start (1+ entry-index)))
-                                  (let ((entry (aref dictionary-array entry-index 0)))
-                                    (collect-segmentations (subseq text (length entry))
-                                                           :limit limit
-                                                           :segments (append segments
-                                                                             (list entry))))))))))))
-         (collect-segmentations text :limit limit))
-     :stop)
-    segmentations))
+           :repeat (1- text-len)
+           :do (loop
+                  :for edge-index :from 1 :to max-edge-index
+                  :do (multiple-value-bind (u v)
+                          (graph-vertex-index edge-index text-len)
+                        (let* ((u-relax (gethash u relax-ht
+                                                 (make-relax-record most-positive-fixnum nil)))
+                               (v-relax (gethash v relax-ht
+                                                 (make-relax-record most-positive-fixnum nil)))
+                               (u-d     (aref u-relax 0))
+                               (v-d     (aref v-relax 0))
+                               (w       (aref graph edge-index)))
+                          (when w
+                            (cond ((> v-d (+ u-d w))
+                                   (setf (gethash v relax-ht)
+                                         (make-relax-record (+ u-d w) (list u)))))))))))
+      (labels
+          ((collect-segmentations (&optional (v text-len) (segments (list)))
+             (let ((shortest-path-len (aref (gethash text-len relax-ht) 0)))
+               (cond ((> (length segments) shortest-path-len))
+                     ((and (= v 0)
+                           (= text-len (cadar (last segments)))
+                           (= (length segments) shortest-path-len))
+                      (push segments segmentations))
+                     ((> v 0)
+                      (loop
+                         :for u :in (gethash v precedence-ht)
+                         :do (let ((segments-copy (copy-list segments)))
+                               (push (list u v) segments-copy)
+                               (collect-segmentations u segments-copy))))))))
+        (collect-segmentations))
+      (loop
+         :for s :in segmentations
+         :do (format t "~{ ~a~}~%"
+                     (mapcar (lambda (u-v) (subseq text (first u-v) (second u-v))) s))))))
