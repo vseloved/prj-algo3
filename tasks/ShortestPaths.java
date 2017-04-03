@@ -18,7 +18,17 @@ public class ShortestPaths {
                 {NO, NO, NO, NO, NO, NO, NO, 0, NO, NO},
                 {NO, NO, NO, NO, NO, NO, NO, NO, 0, 3},
                 {NO, NO, NO, NO, NO, NO, NO, NO, NO, 0}};
+        double[][] resultMatrix = new double[solutionMatrix.length][solutionMatrix[0].length];
 
-
+        //checking result with provided solution matrix
+        for (int source = 0; source < exampleGraph.getV(); source++) {
+            Dijkstra dijkstra = new Dijkstra(exampleGraph, source);
+            for (int target = 0; target < exampleGraph.getV(); target++) {
+                resultMatrix[source][target] = dijkstra.distTo(target);
+                if (solutionMatrix[source][target] != resultMatrix[source][target]) {
+                    System.out.println("ERROR, path from " + source + " to " + target + " is incorrect");
+                }
+            }
+        }
     }
 }
