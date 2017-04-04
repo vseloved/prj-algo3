@@ -1,0 +1,6 @@
+node:
+  image: node:7
+  working_dir: /tasks/victord/task1
+  volumes:
+    - ../..:/tasks
+  command: node main.js
