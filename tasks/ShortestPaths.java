@@ -1,3 +1,9 @@
+import java.io.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Scanner;
+
 public class ShortestPaths {
     public static void main(String[] args) {
         int V = 10;
@@ -30,5 +36,27 @@ public class ShortestPaths {
                 }
             }
         }
+        EdgeWeightedDigraph largeGraph;
+        File file = new File(DynamicTask1.class.getResource("largeEWD.txt").getFile());
+
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            Scanner scanner = new Scanner(new BufferedInputStream(fis));
+            scanner.useLocale(Locale.US);
+            largeGraph = new EdgeWeightedDigraph(scanner.nextInt());
+            int E = scanner.nextInt();
+            for (int i = 0; i < E; i++) {
+                int v = scanner.nextInt();
+                int w = scanner.nextInt();
+                double weight = scanner.nextDouble();
+                largeGraph.addEdge(v, w, weight);
+            }
+
+        }
+        catch (IOException ioe) {
+            throw new IllegalArgumentException("Could not open " + file, ioe);
+        }
+        Dijkstra d = new Dijkstra(largeGraph, 0);
+        System.out.println(d.pathTo(589756));
     }
 }
