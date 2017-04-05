@@ -27,7 +27,7 @@
     m))
 
 (defparameter *shortest-paths*
-  (print-adj-mat (floyd-warshall *example-graph*)))
+  (print-adj-mat *example-graph* (floyd-warshall *example-graph*)))
 
 ;;      1    2    3    4    5    6    7    8    9    10  
 ;;      __________________________________________________
