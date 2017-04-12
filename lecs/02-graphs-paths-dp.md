@@ -41,25 +41,28 @@
 4. Когда все вершины, начиная с первой выбранной, просмотренны, если в графе еще остались не посещенные вершины, повторить алгоритм для них.
 
 ```
-(defstruct (node (:conc-name nil))
-  id children)
+(defstruct (edge (:conc-name nil))
+  src dst label)
 
-(defclass graph ()
-  ((nodes :initarg :nodes :initform (make-hash-table) :accessor nodes)))
+(defstruct (node (:conc-name nil))
+  id edges)
+
+(defstruct (graph (:conc-name nil))
+  (nodes (make-hash-table)))
 
 (defun topo-sort (graph &optional
                         ;; nodes that were not visited - initially, all nodes
                         (unvisited (copy-hash-table (nodes graph)))
                         (rez (make-array 0 :adjustable t :fill-pointer t))
                         (node (block take-first
-                                (maphash (lambda (k v)
-                                           (return-from take-first v))
+                                (maphash (lambda (id node)
+                                           (return-from take-first node))
                                          unvisited))
                               ;; additional value showing if the argument was provided
                               recursive-p))
   (remhash (id node) unvisited)
-  (dolist (node-weight (children node))
-    (let ((child (first node-weight) ))
+  (dolist (edge (edges node))
+    (let ((child (dst edge)))
       (when (gethash (id child) unvisited)
         (topo-sort graph unvisited rez child))))
   (vector-push-extend node rez)
