@@ -1,3 +1,5 @@
+package dmitriypanasiuk;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 

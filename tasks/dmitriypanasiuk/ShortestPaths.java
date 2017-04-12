@@ -1,9 +1,7 @@
-import com.sun.javafx.geom.Edge;
+package dmitriypanasiuk;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Scanner;
 
 public class ShortestPaths {

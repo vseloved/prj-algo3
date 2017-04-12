@@ -1,3 +1,5 @@
+package dmitriypanasiuk;
+
 import java.util.NoSuchElementException;
 
 public class MinHeap {
