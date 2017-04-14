@@ -5,7 +5,7 @@
   :depends-on (:cl-ppcre)
   :components ((:module "src"
 			:components
-			((:file "packages")
+			((:file "package")
 			 (:file "break-text")
 			 (:file "graph")
 			 (:file "tsort")))))
