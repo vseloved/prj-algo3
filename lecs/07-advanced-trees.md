@@ -43,5 +43,3 @@ R-деревья (rectangular - деревья прямоугольников) �
 - https://www.slideshare.net/madAlgorithmist/mysql-performance-optimization-indexing-algorithms-and-data-structures-14041930
 - http://guide.couchdb.org/draft/btree.html
 - http://www.aosabook.org/en/bdb.html
-- http://hypirion.com/musings/understanding-persistent-vector-pt-1, http://hypirion.com/musings/understanding-persistent-vector-pt-2, http://hypirion.com/musings/understanding-persistent-vector-pt-3, http://hypirion.com/musings/understanding-clojure-transients, http://hypirion.com/musings/persistent-vector-performance-summarised
-
