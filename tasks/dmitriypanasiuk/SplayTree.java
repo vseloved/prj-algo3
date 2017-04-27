@@ -39,6 +39,40 @@ public class SplayTree {
         }
     }
 
+    private Node splay(Node root, int key) {
+        if (root.key == key) {
+            return root;
+        } else if (root.key > key) {
+            if (root.left.key == key) {
+                return Zig(root);
+            } else if (root.left.key > key) {
+                root.left.left = splay(root.left.left, key);
+                root = Zig(root);
+                root = Zig(root);
+                return root;
+            } else {
+                root.left.right = splay(root.left.right, key);
+                root.left = Zag(root.left);
+                root = Zig(root);
+                return root;
+            }
+        } else {
+            if (root.right.key == key) {
+                return Zag(root);
+            } else if (root.right.key > key) {
+                root.right.left = splay(root.right.left, key);
+                root.right = Zig(root.right);
+                root = Zag(root);
+                return root;
+            } else {
+                root.right.right = splay(root.right.right, key);
+                root = Zag(root);
+                root = Zag(root);
+                return root;
+            }
+        }
+    }
+
     private Node Zig(Node root) {
         Node right = root.left.right;
         root.left.right = root;
@@ -84,12 +118,15 @@ public class SplayTree {
     }
 
     public static void main(String[] args) {
+        //http://www.geeksforgeeks.org/splay-tree-set-1-insert/
         SplayTree tree = new SplayTree();
         tree.insert(5, "5");
         tree.insert(7, "7");
-        tree.insert(2, "2");
         tree.insert(3, "3");
+        tree.insert(4, "4");
         tree.insert(1, "1");
+        tree.insert(2, "2");
+        tree.insert(0, "0");
         System.out.println(tree);
         tree.root = tree.Zig(tree.root);
         System.out.println(tree);
