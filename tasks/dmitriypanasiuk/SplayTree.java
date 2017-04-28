@@ -13,9 +13,29 @@ public class SplayTree {
         private String value;
         private Node left, right;
 
-        public Node(int key, String value) {
+        Node(int key, String value) {
             this.key = key;
             this.value = value;
+        }
+    }
+
+    public String get(int key) {
+        this.root = splay(this.root, key);
+        if (this.root.key == key) return this.root.value;
+        return null;
+    }
+
+    public void remove(int key) {
+        this.root = splay(this.root, key);
+        if (this.root.key == key) {
+            if (this.root.left == null) {
+                this.root = this.root.right;
+            } else {
+                Node x = root.right;
+                root = root.left;
+                splay(root, key);
+                root.right = x;
+            }
         }
     }
 
@@ -26,6 +46,7 @@ public class SplayTree {
             return;
         }
         insert(root, newNode);
+        this.root = splay(this.root, key);
     }
 
     private void insert(Node root, Node node) {
@@ -40,53 +61,64 @@ public class SplayTree {
     }
 
     private Node splay(Node root, int key) {
-        if (root.key == key) {
-            return root;
-        } else if (root.key > key) {
+        if (root == null) return null;
+        if (root.key > key) {
+            if (root.left == null) return root;
             if (root.left.key == key) {
                 return Zig(root);
             } else if (root.left.key > key) {
                 root.left.left = splay(root.left.left, key);
                 root = Zig(root);
-                root = Zig(root);
-                return root;
+
             } else {
                 root.left.right = splay(root.left.right, key);
-                root.left = Zag(root.left);
-                root = Zig(root);
-                return root;
+                if (root.left.right != null) {
+                    root.left = Zag(root.left);
+                }
             }
-        } else {
+            if (root.left == null) return root;
+            else return Zig(root);
+        } else if (root.key < key){
+            if (root.right == null) return root;
             if (root.right.key == key) {
                 return Zag(root);
             } else if (root.right.key > key) {
                 root.right.left = splay(root.right.left, key);
-                root.right = Zig(root.right);
-                root = Zag(root);
-                return root;
+                if (root.right.left != null) {
+                    root.right = Zig(root.right);
+                }
             } else {
                 root.right.right = splay(root.right.right, key);
                 root = Zag(root);
-                root = Zag(root);
-                return root;
             }
+            if (root.right == null) return root;
+            else return Zag(root);
         }
+        else return root;
     }
 
     private Node Zig(Node root) {
-        Node right = root.left.right;
+        /*Node right = root.left.right;
         root.left.right = root;
         Node newRoot = root.left;
         root.left = right;
-        return newRoot;
+        return newRoot;*/
+        Node x = root.left;
+        root.left = x.right;
+        x.right = root;
+        return x;
     }
 
     private Node Zag(Node root) {
-        Node left = root.right.left;
+        /*Node left = root.right.left;
         root.right.left = root;
         Node newRoot = root.right;
         root.right = left;
-        return newRoot;
+        return newRoot;*/
+        Node x = root.right;
+        root.right = x.left;
+        x.left = root;
+        return x;
     }
 
     @Override
@@ -118,19 +150,13 @@ public class SplayTree {
     }
 
     public static void main(String[] args) {
-        //http://www.geeksforgeeks.org/splay-tree-set-1-insert/
         SplayTree tree = new SplayTree();
-        tree.insert(5, "5");
-        tree.insert(7, "7");
-        tree.insert(3, "3");
-        tree.insert(4, "4");
-        tree.insert(1, "1");
-        tree.insert(2, "2");
         tree.insert(0, "0");
-        System.out.println(tree);
-        tree.root = tree.Zig(tree.root);
-        System.out.println(tree);
-        tree.root = tree.Zag(tree.root);
-        System.out.println(tree);
+        tree.insert(2, "2");
+        tree.insert(1, "1");
+        tree.insert(4, "4");
+        tree.insert(3, "3");
+        tree.insert(7, "7");
+        tree.insert(5, "5");
     }
 }
