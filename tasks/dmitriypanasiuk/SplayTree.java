@@ -98,11 +98,6 @@ public class SplayTree {
     }
 
     private Node Zig(Node root) {
-        /*Node right = root.left.right;
-        root.left.right = root;
-        Node newRoot = root.left;
-        root.left = right;
-        return newRoot;*/
         Node x = root.left;
         root.left = x.right;
         x.right = root;
@@ -110,11 +105,6 @@ public class SplayTree {
     }
 
     private Node Zag(Node root) {
-        /*Node left = root.right.left;
-        root.right.left = root;
-        Node newRoot = root.right;
-        root.right = left;
-        return newRoot;*/
         Node x = root.right;
         root.right = x.left;
         x.left = root;
