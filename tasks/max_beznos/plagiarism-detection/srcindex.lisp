@@ -8,7 +8,7 @@
 
 (in-package #:srcindex)
 
-(defparameter *min-word-length*          7)
+(defparameter *min-word-length*          8)
 (defparameter *mismatch-threshold*       0.05)
 (defparameter *mismatch-count-credit*   -5)
 (defparameter *srcindex-hash-table-size* 2000000)
@@ -27,7 +27,7 @@
     (labels ((push-unless-empty (w pos)
                (let ((trimmed (string-trim trim-chars w)))
                  (unless (string= trimmed "")
-                   (push (list trimmed (- pos (length w))) ws)))))
+                   (push (list trimmed (the fixnum (- pos (length w)))) ws)))))
       (loop
          :with w = ""
          :for  c = (read-char istream nil '*eof*)
@@ -72,24 +72,22 @@
            (push wp back-list))))
 
 (defun source-match (source-ws text-ws)
-  (map 'list #'car
-       (loop
-          :with match = (list)
-          :with mismatch-count = *mismatch-count-credit*
-          :for twp :in text-ws
-          :for swp :in source-ws
-          :while (or (= 0 (length match))
-                     (< (/ mismatch-count (length match)) *mismatch-threshold*))
-          :do (let ((match-to-source-word (string= (first twp) (first swp))))
-                (push (list (list (first swp) (second swp) (second twp)) match-to-source-word)
-                      match)
-                (when (not match-to-source-word)
-                  (incf mismatch-count)))
-          :finally (return (loop
-                              :for w = (car match) :then (car match)
-                              :while (and w (not (cadr w)))
-                              :do (pop match)
-                              :finally (return match))))))
+  (declare (optimize (speed 3) (safety 0)))
+  (loop
+     :with end-wp
+     :with mismatch-count = (the fixnum *mismatch-count-credit*)
+     :for current-length  = (the fixnum 0) :then (the fixnum (1+ current-length))
+     :for twp :in text-ws
+     :for swp :in source-ws
+     :while (or (= 0 current-length)
+                (< (/ mismatch-count current-length) (the single-float *mismatch-threshold*)))
+     :do (progn
+           (setf end-wp
+                 (list (first swp) (second swp) (second twp)))
+           (unless (string= (the (vector character) (first twp))
+                            (the (vector character) (first swp)))
+             (incf (the fixnum mismatch-count))))
+     :finally (return (cons (list end-wp) current-length))))
 
 (defun find-sources (word-list &key (min-words-match 2))
   (loop
@@ -107,18 +105,25 @@
                (gethash w *source-index* (list))
              (when (and found (= skip-count 0))
                (loop
+                  :with last-added-range = nil
                   :for s :in source
-                  :do (let* ((match-tail (reverse (source-match (st-next-list s) (cdr next-list))))
-                             (source-matched-words
-                              (append (source-match (st-back-list s) back-list)
+                  :when (or (not last-added-range)
+                            (not (and (>= p (car last-added-range))
+                                      (<= p (cdr last-added-range)))))
+                  :do (let* ((match-tail (source-match (st-next-list s) (cdr next-list)))
+                             (match-head (source-match (st-back-list s) back-list))
+                             (match-len  (+ 1 (cdr match-head) (cdr match-tail)))
+                             (match-full
+                              (append (car match-head)
                                       (list (list w (st-position s) p))
-                                      match-tail)))
-                        (cond ((>= (length source-matched-words) min-words-match)
-                               (push (list (st-path s) source-matched-words
-                                           w (st-position s))
+                                      (reverse (car match-tail)))))
+                        (cond ((>= match-len min-words-match)
+                               (push (list (st-path s) match-len match-full w (st-position s))
                                      sources)
-                               (setf skip-count (length match-tail)))
+                               (setf skip-count (+ (cdr match-tail) (abs *mismatch-count-credit*)))
+                               (setf last-added-range (cons (third (first match-full))
+                                                            (third (car (last match-full))))))
                               (t
                                (setf skip-count (1- (* 2 (abs *mismatch-count-credit*))))))))))
            (push wp back-list))
-     :finally (return (sort sources #'> :key (lambda (s) (length (cadr s)))))))
+     :finally (return (sort sources #'> :key #'second))))

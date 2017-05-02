@@ -21,7 +21,7 @@
     (- end start)))
 
 (defun extract-source-ref (raw-source-ref-list)
-  (let ((wms (second raw-source-ref-list)))
+  (let ((wms (third raw-source-ref-list)))
     (make-source-ref :source-filename (first raw-source-ref-list)
                      :this-offset   (third (first wms))
                      :this-length   (extract-length wms #'third)

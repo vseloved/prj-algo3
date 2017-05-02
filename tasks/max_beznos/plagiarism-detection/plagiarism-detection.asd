@@ -4,7 +4,7 @@
   :description "Describe plagiarism-detection here"
   :author "maxim beznos"
   :license "Specify license here"
-  :depends-on (#:babel #:cl-fad)
+  :depends-on (#:babel #:cl-fad #:lparallel)
   :serial t
   :components ((:file "srcindex")
                (:file "output")
