@@ -11,36 +11,55 @@
 (defparameter *min-word-length*          8)
 (defparameter *mismatch-threshold*       0.05)
 (defparameter *mismatch-count-credit*   -5)
-(defparameter *srcindex-hash-table-size* 2000000)
+(defparameter *srcindex-hash-table-size* 4000000)
 
-(defvar *source-index* (make-hash-table :test 'equalp :size *srcindex-hash-table-size*))
+(defvar *source-index* nil)
+
+(defun reset-source-index ()
+  (setf *source-index* nil)
+  (sb-ext:gc :full t)
+  (setf *source-index* (make-hash-table :test 'equalp :size *srcindex-hash-table-size*)))
+
+(deftype index-type ()
+  `(integer 0 ,(expt 2 24)))
 
 (defstruct (source-text (:conc-name st-))
-  path
-  (position 0 :type fixnum)
-  back-list
-  next-list)
+  (path      ""  :type pathname)
+  (position  0   :type index-type)
+  (back-list nil :type list)
+  (next-list nil :type list))
 
-(defun word-list (istream)
-  (let ((ws (list))
-        (trim-chars '(#\" #\, #\; #\: #\. #\Newline)))
+(defun word-list (istream &optional (split-offset nil))
+  (let ((w (make-array 256 :element-type 'character :fill-pointer 0))
+        (ws-next (list))
+        (ws-back (list))
+        (offset  0)
+        (trim-chars '(#\! #\? #\( #\) #\" #\, #\; #\: #\. #\Newline)))
     (labels ((push-unless-empty (w pos)
                (let ((trimmed (string-trim trim-chars w)))
                  (unless (string= trimmed "")
-                   (push (list trimmed (the fixnum (- pos (length w)))) ws)))))
+                   (if (and split-offset
+                            (< offset split-offset))
+                       (push (cons (copy-seq trimmed) (the index-type (- pos (length w)))) ws-back)
+                       (push (cons (copy-seq trimmed) (the index-type (- pos (length w)))) ws-next))
+                   (incf offset)))))
       (loop
-         :with w = ""
+         :with i = 0
          :for  c = (read-char istream nil '*eof*)
-         :for  p = 0 :then (incf p)
+         :for  p = 0 :then (1+ p)
          :until (eql c '*eof*)
          :do (cond ((and (or (char= c #\Space)
                              (char= c #\Newline)))
                     (when (push-unless-empty w p)
-                      (setf w "")))
+                      (setf (fill-pointer w) 0
+                            i 0)))
                    (t
-                    (setf w (concatenate 'string w (string c)))))
+                    (incf (fill-pointer w))
+                    (setf (aref w i) c)
+                    (incf i)))
          :finally (push-unless-empty w p)))
-    (reverse ws)))
+    (values (nreverse ws-next)
+            ws-back)))
 
 (defun word-list-from-file (filename)
   (with-open-file (is filename)
@@ -50,26 +69,28 @@
   (with-input-from-string (is text)
     (word-list is)))
 
-(defun reset-source-index ()
-  (setf *source-index* (make-hash-table :test 'equalp :size *srcindex-hash-table-size*)))
-
 (defun build-source-index (filename)
   (loop
+     :with st-total-inserts = 0
      :with back-list = (list)
      :for next-list  = (word-list-from-file filename) :then (setf next-list (cdr next-list))
      :for wp = (car next-list) :then (car next-list)
      :while next-list
-     :do (let* ((w (first wp))
-                (p (second wp))
-                (source (gethash w *source-index* (list))))
+     :do (let* ((w (car wp))
+                (p (cdr wp))
+                (source (sb-ext:with-locked-hash-table (*source-index*)
+                          (gethash w *source-index* (list)))))
            (when (>= (length w) *min-word-length*)
              (push (make-source-text :path filename
                                      :position p
                                      :back-list back-list
                                      :next-list (cdr next-list))
                    source)
-             (setf (gethash w *source-index*) source))
-           (push wp back-list))))
+             (sb-ext:with-locked-hash-table (*source-index*)
+               (setf (gethash w *source-index*) source))
+             (incf st-total-inserts))
+           (push wp back-list))
+     :finally (return st-total-inserts)))
 
 (defun source-match (source-ws text-ws)
   (declare (optimize (speed 3) (safety 0)))
@@ -83,9 +104,9 @@
                 (< (/ mismatch-count current-length) (the single-float *mismatch-threshold*)))
      :do (progn
            (setf end-wp
-                 (list (first swp) (second swp) (second twp)))
-           (unless (string= (the (vector character) (first twp))
-                            (the (vector character) (first swp)))
+                 (list (car swp) (cdr swp) (cdr twp)))
+           (unless (string= (the (vector character) (car twp))
+                            (the (vector character) (car swp)))
              (incf (the fixnum mismatch-count))))
      :finally (return (cons (list end-wp) current-length))))
 
@@ -97,8 +118,8 @@
      :for next-list   = word-list :then (setf next-list (cdr next-list))
      :for wp = (car next-list) :then (car next-list)
      :while next-list
-     :do (let ((w (first wp))
-               (p (second wp)))
+     :do (let ((w (car wp))
+               (p (cdr wp)))
            (when (> skip-count 0)
              (decf skip-count))
            (multiple-value-bind (source found)
