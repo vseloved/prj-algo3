@@ -1,3 +1,5 @@
+package dmitriypanasiuk;
+
 public class DirectedEdge {
     private int from;
     private int to;

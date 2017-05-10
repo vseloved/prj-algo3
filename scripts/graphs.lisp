@@ -3,6 +3,7 @@
 
 (use-package :rutilsx)
 
+
 (defstruct (edge (:conc-name nil))
   src dst label)
 
