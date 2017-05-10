@@ -1,0 +1,7 @@
+{
+  "name": "task3",
+  "main": "main.js",
+  "dependencies": {
+    "@tyriar/binary-heap": "^1.0.5"
+  }
+}
