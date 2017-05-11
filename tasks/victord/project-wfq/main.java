@@ -42,7 +42,7 @@ class Main {
                         try {
                             count += queue.deq(tid);
                         } catch (EmptyException ex) {
-                            k++;
+                            k--;
                         }
                     }
                 }
