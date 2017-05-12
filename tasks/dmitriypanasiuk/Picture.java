@@ -1,3 +1,5 @@
+package dmitriypanasiuk;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -19,10 +21,7 @@ public class Picture {
             File file = new File(filename);
             if (file.isFile()) {
                 image = ImageIO.read(file);
-            }
-
-            // now try to read from file in same directory as this .class file
-            else {
+            } else {
                 URL url = getClass().getResource(filename);
                 if (url == null) {
                     url = new URL(filename);
@@ -48,7 +47,6 @@ public class Picture {
         this.width  = width;
         this.height = height;
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        // set to TYPE_INT_ARGB to support transparency
         filename = width + "-by-" + height;
     }
 
