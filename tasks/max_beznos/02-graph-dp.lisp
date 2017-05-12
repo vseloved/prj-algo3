@@ -1,37 +1,48 @@
-;;; topological sort using DFS
-;;;
-;;;  Expected complexity is more than O(V + E),
-;;;  because getting childs on every iteration isn't O(1).
-;;;  This is due to simple (and suboptimal) graph representation.
-;;;
-;;;  Accepted input is a list of edges: ((1 2) (1 3) (2 5) ...)
-;;;
-(defun topo-sort (adj-list-graph)
-  (macrolet ((parent (edge) `(first ,edge))
-             (child  (edge) `(second ,edge))
-             (childs (vertex)
-               `(loop
-                   :for edge :in adj-list-graph
-                   :when (eql ,vertex (parent edge))
-                   :collect (child edge))))
-    (let ((visited  (make-hash-table))
-          (traverse (list))
-          (vertices (remove-duplicates
-                     (loop
-                        :for edge :in adj-list-graph
-                        :collect (parent edge)
-                        :collect (child  edge)))))
-      (labels ((visit (vertex)
-                 (loop
-                    :for n :in (childs vertex)
-                    :do (unless (gethash n visited)
-                          (visit n)))
-                 (push vertex traverse)
-                 (setf (gethash vertex visited) 'visited)))
-        (loop
-           :for v :in vertices
-           :do (unless (gethash v visited)
-                 (visit v))))
+(defun make-tree (edge-list)
+  (let* ((edges-count (length edge-list))
+         (first-edge  (first edge-list))
+         (rest-edges  (cdr edge-list))
+         (tree        (list (car first-edge)
+                            (cdr first-edge))))
+    (labels ((add-edge (subtree edge)
+               (let ((u (first edge))
+                     (v (second edge)))
+                 (when (and subtree (consp subtree))
+                   (cond ((eql (car subtree) u)
+                          (push (list v) (cdr subtree))
+                          (setf rest-edges (delete edge rest-edges)))
+                         (t
+                          (add-edge (car subtree) edge)
+                          (add-edge (cdr subtree) edge)))))))
       (loop
-         :for v :in (reverse traverse)
-         :collect v))))
+         :while (> edges-count (length rest-edges))
+         :do (progn
+               (setf edges-count (length rest-edges))
+               (loop
+                  :for edge :in rest-edges
+                  :do (add-edge tree edge))))
+      (values tree
+              rest-edges))))
+
+(defmacro topo-sort-algorithm (tree &body visit-form)
+  `(let* ((traversed))
+     (labels ((traverse (subtree)
+                (when subtree
+                  (if (consp subtree)
+                      (progn (traverse (cdr subtree))
+                             (traverse (car subtree)))
+                      (progn ,@visit-form)))))
+       (traverse ,tree)
+       (reverse traversed))))
+
+(defgeneric topo-sort (tree collect-form)
+  (:method (tree (collect-form (eql :simple-pushnew)))
+    (declare (ignore collect-form))
+    (topo-sort-algorithm tree (pushnew subtree traversed)))
+  (:method (tree (collect-form (eql :ht-query-and-push)))
+    (declare (ignore collect-form))
+    (let ((visited (make-hash-table)))
+      (topo-sort-algorithm tree (unless (gethash subtree visited)
+                                  (push subtree traversed)
+                                  (setf (gethash subtree visited) t))))))
+
