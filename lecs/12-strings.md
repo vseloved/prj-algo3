@@ -36,6 +36,7 @@
 ## Литература
 
 - https://unspecified.wordpress.com/2012/04/19/the-importance-of-language-level-abstract-unicode-strings/
+- http://mrale.ph/blog/2016/11/23/making-less-dart-faster.html
 - http://www.inf.fh-flensburg.de/lang/algorithmen/pattern/bmen.htm
 - http://www-igm.univ-mlv.fr/~lecroq/string/node26.html
 - http://www-igm.univ-mlv.fr/~mac/Articles-PDF/CP-1991-jacm.pdf
