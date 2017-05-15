@@ -2,6 +2,7 @@ package dmitriypanasiuk;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.ForkJoinPool;
 
 public class FloydWarshall {
     private double[][] distTo;
@@ -29,8 +30,9 @@ public class FloydWarshall {
             }
         }
 
-        for (int i = 0; i < V; i++) {
-            // compute shortest paths using only 0, 1, ..., i as intermediate vertices
+        new ForkJoinPool().invoke(new FloydWarshallParallel(distTo, edgeTo));
+        //Usual implementation
+        /*for (int i = 0; i < V; i++) {
             for (int v = 0; v < V; v++) {
                 if (edgeTo[v][i] == null) continue;  // optimization
                 for (int w = 0; w < V; w++) {
@@ -39,11 +41,8 @@ public class FloydWarshall {
                         edgeTo[v][w] = edgeTo[i][w];
                     }
                 }
-                if (distTo[v][v] < 0.0) {
-                    return;
-                }
             }
-        }
+        }*/
     }
 
     public boolean hasPath(int s, int t) {

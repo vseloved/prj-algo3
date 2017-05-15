@@ -1,6 +1,9 @@
 package dmitriypanasiuk;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -115,9 +118,8 @@ public class ShortestPaths {
     public static void checkFloydWarshallCorrectness() {
         AdjMatrixEdgeWeightedDigraph exampleGraph = exampleMatrixGraph();
         double[][] resultMatrix = new double[solutionMatrix.length][solutionMatrix[0].length];
+        FloydWarshall FWarshall = new FloydWarshall(exampleGraph);
         for (int source = 0; source < exampleGraph.V(); source++) {
-            //Dijkstra dijkstra = new Dijkstra(exampleGraph, source);
-            FloydWarshall FWarshall = new FloydWarshall(exampleGraph);
             for (int target = 0; target < exampleGraph.V(); target++) {
                 resultMatrix[source][target] = FWarshall.dist(source, target);
                 if (solutionMatrix[source][target] != resultMatrix[source][target]) {
