@@ -115,10 +115,10 @@ public class ShortestPaths {
         }
     }
 
-    public static void checkFloydWarshallCorrectness() {
+    public static void checkFloydWarshallCorrectness(boolean parallel) {
         AdjMatrixEdgeWeightedDigraph exampleGraph = exampleMatrixGraph();
         double[][] resultMatrix = new double[solutionMatrix.length][solutionMatrix[0].length];
-        FloydWarshall FWarshall = new FloydWarshall(exampleGraph);
+        FloydWarshall FWarshall = new FloydWarshall(exampleGraph, parallel);
         for (int source = 0; source < exampleGraph.V(); source++) {
             for (int target = 0; target < exampleGraph.V(); target++) {
                 resultMatrix[source][target] = FWarshall.dist(source, target);
@@ -134,7 +134,9 @@ public class ShortestPaths {
 
         checkBellmanFordCorrectness();
 
-        checkFloydWarshallCorrectness();
+        checkFloydWarshallCorrectness(false);
+
+        checkFloydWarshallCorrectness(true);
         // 1000000 узлов, 15172126 ребер - http://algs4.cs.princeton.edu/44sp/largeEWD.txt
         EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
         double dijkstraAverage = 0;

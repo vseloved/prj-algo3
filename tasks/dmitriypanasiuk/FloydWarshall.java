@@ -8,7 +8,7 @@ public class FloydWarshall {
     private double[][] distTo;
     private DirectedEdge[][] edgeTo;
 
-    public FloydWarshall(AdjMatrixEdgeWeightedDigraph G) {
+    public FloydWarshall(AdjMatrixEdgeWeightedDigraph G, boolean parallel) {
         int V = G.V();
         distTo = new double[V][V];
         edgeTo = new DirectedEdge[V][V];
@@ -30,19 +30,22 @@ public class FloydWarshall {
             }
         }
 
-        new ForkJoinPool().invoke(new FloydWarshallParallel(distTo, edgeTo));
-        //Usual implementation
-        /*for (int i = 0; i < V; i++) {
-            for (int v = 0; v < V; v++) {
-                if (edgeTo[v][i] == null) continue;  // optimization
-                for (int w = 0; w < V; w++) {
-                    if (distTo[v][w] > distTo[v][i] + distTo[i][w]) {
-                        distTo[v][w] = distTo[v][i] + distTo[i][w];
-                        edgeTo[v][w] = edgeTo[i][w];
+        if (parallel) {
+            new ForkJoinPool().invoke(new FloydWarshallParallel(distTo, edgeTo));
+        } else {
+            //Usual implementation
+            for (int i = 0; i < V; i++) {
+                for (int v = 0; v < V; v++) {
+                    if (edgeTo[v][i] == null) continue;  // optimization
+                    for (int w = 0; w < V; w++) {
+                        if (distTo[v][w] > distTo[v][i] + distTo[i][w]) {
+                            distTo[v][w] = distTo[v][i] + distTo[i][w];
+                            edgeTo[v][w] = edgeTo[i][w];
+                        }
                     }
                 }
             }
-        }*/
+        }
     }
 
     public boolean hasPath(int s, int t) {
