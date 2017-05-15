@@ -36,6 +36,15 @@ public class AdjMatrixEdgeWeightedDigraph {
         }
     }
 
+    public void addEdge(int from, int to, double weight) {
+        validateVertex(from);
+        validateVertex(to);
+        if (adj[from][to] == null) {
+            E++;
+            adj[from][to] = new DirectedEdge(from, to, weight);
+        }
+    }
+
     public Iterable<DirectedEdge> adj(int v) {
         validateVertex(v);
         return new AdjIterator(v);

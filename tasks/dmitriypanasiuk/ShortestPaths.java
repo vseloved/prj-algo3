@@ -39,6 +39,27 @@ public class ShortestPaths {
         return exampleGraph;
     }
 
+    private static AdjMatrixEdgeWeightedDigraph exampleMatrixGraph() {
+        AdjMatrixEdgeWeightedDigraph exampleGraph = new AdjMatrixEdgeWeightedDigraph(10);
+        exampleGraph.addEdge(0, 1, 7);
+        exampleGraph.addEdge(0, 2, 3);
+        exampleGraph.addEdge(1, 3, 8);
+        exampleGraph.addEdge(1, 4, 3);
+        exampleGraph.addEdge(2, 1, 1);
+        exampleGraph.addEdge(2, 3, 2);
+        exampleGraph.addEdge(2, 4, 1);
+        exampleGraph.addEdge(3, 5, 2);
+        exampleGraph.addEdge(3, 0, 2);
+        exampleGraph.addEdge(4, 3, 9);
+        exampleGraph.addEdge(4, 5, 4);
+        exampleGraph.addEdge(5, 2, 4);
+        exampleGraph.addEdge(6, 7, 10);
+        exampleGraph.addEdge(4, 7, 1);
+        exampleGraph.addEdge(8, 9, 3);
+
+        return exampleGraph;
+    }
+
     private static EdgeWeightedDigraph largeGraph(String filename) {
         EdgeWeightedDigraph largeGraph;
 
@@ -91,10 +112,27 @@ public class ShortestPaths {
         }
     }
 
+    public static void checkFloydWarshallCorrectness() {
+        AdjMatrixEdgeWeightedDigraph exampleGraph = exampleMatrixGraph();
+        double[][] resultMatrix = new double[solutionMatrix.length][solutionMatrix[0].length];
+        for (int source = 0; source < exampleGraph.V(); source++) {
+            //Dijkstra dijkstra = new Dijkstra(exampleGraph, source);
+            FloydWarshall FWarshall = new FloydWarshall(exampleGraph);
+            for (int target = 0; target < exampleGraph.V(); target++) {
+                resultMatrix[source][target] = FWarshall.dist(source, target);
+                if (solutionMatrix[source][target] != resultMatrix[source][target]) {
+                    System.out.println("ERROR, path from " + source + " to " + target + " is incorrect");
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) {
         checkDijkstraCorrectness();
 
         checkBellmanFordCorrectness();
+
+        checkFloydWarshallCorrectness();
         // 1000000 узлов, 15172126 ребер - http://algs4.cs.princeton.edu/44sp/largeEWD.txt
         EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
         double dijkstraAverage = 0;
