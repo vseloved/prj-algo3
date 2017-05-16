@@ -87,6 +87,29 @@ public class ShortestPaths {
         return largeGraph;
     }
 
+    private static AdjMatrixEdgeWeightedDigraph largeGraphMatrix(String filename) {
+        AdjMatrixEdgeWeightedDigraph matrixGraph;
+        File file = new File(DynamicTask1.class.getResource(filename).getFile());
+
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            Scanner scanner = new Scanner(new BufferedInputStream(fis));
+            scanner.useLocale(Locale.US);
+            matrixGraph = new AdjMatrixEdgeWeightedDigraph(scanner.nextInt());
+            int E = scanner.nextInt();
+            for (int i = 0; i < E; i++) {
+                int v = scanner.nextInt();
+                int w = scanner.nextInt();
+                double weight = scanner.nextDouble();
+                matrixGraph.addEdge(v, w, weight);
+            }
+
+        } catch (IOException ioe) {
+            throw new IllegalArgumentException("Could not open " + file, ioe);
+        }
+        return matrixGraph;
+    }
+
     public static void checkDijkstraCorrectness() {
         EdgeWeightedDigraph exampleGraph = exampleGraph();
         double[][] resultMatrix = new double[solutionMatrix.length][solutionMatrix[0].length];
@@ -138,7 +161,7 @@ public class ShortestPaths {
 
         checkFloydWarshallCorrectness(true);
         // 1000000 узлов, 15172126 ребер - http://algs4.cs.princeton.edu/44sp/largeEWD.txt
-        EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
+        /*EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
         double dijkstraAverage = 0;
         double bellmanFordAverage = 0;
         for (int i = 0; i < 10; i++) {
@@ -150,6 +173,20 @@ public class ShortestPaths {
             bellmanFordAverage += clock2.elapsedTime();
         }
         System.out.println("Dijkstra average = " + dijkstraAverage / 10);
-        System.out.println("BellmanFord average = " + bellmanFordAverage / 10);
+        System.out.println("BellmanFord average = " + bellmanFordAverage / 10);*/
+        AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("1000EWD.txt");
+        double unparallel = 0.0;
+        double parallel = 0.0;
+        for (int i=0; i < 10; i++) {
+            StopWatchCPU clock1 = new StopWatchCPU();
+            new FloydWarshall(largeGraph, false);
+            unparallel += clock1.elapsedTime();
+            StopWatchCPU clock2 = new StopWatchCPU();
+            new FloydWarshall(largeGraph, true);
+            parallel += clock2.elapsedTime();
+        }
+        System.out.println("Not parallel average = " + unparallel / 10);
+        System.out.println("Parallel average = " + parallel / 10);
+        System.out.println("Ratio is " + unparallel/parallel);
     }
 }
