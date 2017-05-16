@@ -152,6 +152,16 @@ public class ShortestPaths {
         }
     }
 
+    public static void checkParallelCorrectness(FloydWarshall unparallel, FloydWarshall parallel, int size) {
+        for (int source = 0; source < size; source++) {
+            for (int target = 0; target < size; target++) {
+                if (unparallel.dist(source, target) != parallel.dist(source, target)) {
+                    System.out.println("dist from " + source + " to " + target + " is wrong!");
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) {
         checkDijkstraCorrectness();
 
@@ -174,16 +184,18 @@ public class ShortestPaths {
         }
         System.out.println("Dijkstra average = " + dijkstraAverage / 10);
         System.out.println("BellmanFord average = " + bellmanFordAverage / 10);*/
-        AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("1000EWD.txt");
+        //AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("mediumEWD.txt");
+        AdjMatrixEdgeWeightedDigraph largeGraph = exampleMatrixGraph();
         double unparallel = 0.0;
         double parallel = 0.0;
-        for (int i=0; i < 10; i++) {
+        for (int i = 0; i < 1000; i++) {
             StopWatchCPU clock1 = new StopWatchCPU();
-            new FloydWarshall(largeGraph, false);
+            FloydWarshall unp = new FloydWarshall(largeGraph, false);
             unparallel += clock1.elapsedTime();
             StopWatchCPU clock2 = new StopWatchCPU();
-            new FloydWarshall(largeGraph, true);
+            FloydWarshall par = new FloydWarshall(largeGraph, true);
             parallel += clock2.elapsedTime();
+            checkParallelCorrectness(unp, par, largeGraph.V());
         }
         System.out.println("Not parallel average = " + unparallel / 10);
         System.out.println("Parallel average = " + parallel / 10);
