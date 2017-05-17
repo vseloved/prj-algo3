@@ -171,7 +171,7 @@ public class ShortestPaths {
 
         checkFloydWarshallCorrectness(true);
         // 1000000 узлов, 15172126 ребер - http://algs4.cs.princeton.edu/44sp/largeEWD.txt
-        /*EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
+        EdgeWeightedDigraph largeGraph = largeGraph("largeEWD.txt");
         double dijkstraAverage = 0;
         double bellmanFordAverage = 0;
         for (int i = 0; i < 10; i++) {
@@ -183,28 +183,24 @@ public class ShortestPaths {
             bellmanFordAverage += clock2.elapsedTime();
         }
         System.out.println("Dijkstra average = " + dijkstraAverage / 10);
-        System.out.println("BellmanFord average = " + bellmanFordAverage / 10);*/
-        AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("10000EWD.txt");
-        //AdjMatrixEdgeWeightedDigraph largeGraph = exampleMatrixGraph();
-        double unparallel = 0.0;
-        double parallel = 0.0;
-        double parallel2 = 0.0;
+        System.out.println("BellmanFord average = " + bellmanFordAverage / 10);
 
-        int N = 1;
+        AdjMatrixEdgeWeightedDigraph testGraph = largeGraphMatrix("1000EWD.txt");
+        double sequentialRuntime = 0.0;
+        double parallelRuntime = 0.0;
+
+        int N = 10;
         for (int i = 0; i < N; i++) {
-            /*StopWatchCPU clock1 = new StopWatchCPU();
-            FloydWarshall unp = new FloydWarshall(largeGraph, false);
-            unparallel += clock1.elapsedTime();*/
-            StopWatchCPU clock2 = new StopWatchCPU();
-            StopWatch clock3 = new StopWatch();
-            FloydWarshall par = new FloydWarshall(largeGraph, true);
-            parallel += clock2.elapsedTime();
-            parallel2 += clock3.elapsedTime();
-            //checkParallelCorrectness(unp, par, largeGraph.V());
+            StopWatch clock1 = new StopWatch();
+            FloydWarshall sequentialSolution = new FloydWarshall(testGraph, false);
+            sequentialRuntime += clock1.elapsedTime();
+            StopWatch clock2 = new StopWatch();
+            FloydWarshall parallelSolution = new FloydWarshall(testGraph, true);
+            parallelRuntime += clock2.elapsedTime();
+            checkParallelCorrectness(sequentialSolution, parallelSolution, testGraph.V());
         }
-        System.out.println("Not parallel average = " + unparallel / N);
-        System.out.println("Parallel average = " + parallel / N);
-        System.out.println("Parallel2 average = " + parallel2 / N);
-        System.out.println("Ratio is " + unparallel/parallel);
+        System.out.println("Sequential runtime average = " + sequentialRuntime / N);
+        System.out.println("Parallel runtime average = " + parallelRuntime / N);
+        System.out.println("Ratio is " + sequentialRuntime/parallelRuntime);
     }
 }

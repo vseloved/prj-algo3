@@ -33,9 +33,8 @@ public class FloydWarshall {
         if (parallel) {
             new ForkJoinPool().invoke(new FloydWarshallParallel(distTo, edgeTo));
         } else {
-            //Usual implementation
+            //sequential implementation
             for (int i = 0; i < V; i++) {
-                System.out.println("Starting " + i + " iteration");
                 for (int v = 0; v < V; v++) {
                     if (edgeTo[v][i] == null) continue;  // optimization
                     for (int w = 0; w < V; w++) {

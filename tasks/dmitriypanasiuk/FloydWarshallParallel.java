@@ -17,9 +17,7 @@ public class FloydWarshallParallel extends RecursiveAction {
 
     @Override
     protected void compute() {
-
         for (int i = 0; i < V; i++) {
-            System.out.println("Executing iteration " + i);
             List<RecursiveAction> tasks = new ArrayList<>();
             for (int v = 0; v < V; v++) {
                 RecursiveAction task = new SubTaskMiddleLoop(distTo, edgeTo, i, v);
@@ -32,59 +30,6 @@ public class FloydWarshallParallel extends RecursiveAction {
 
         }
 
-    }
-}
-
-class SubTask extends RecursiveAction {
-    private double[][] distTo;
-    private DirectedEdge[][] edgeTo;
-    private int i;
-    private int V;
-
-    public SubTask(double[][] distTo, DirectedEdge[][] edgeTo, int i) {
-        this.distTo = distTo;
-        this.edgeTo = edgeTo;
-        this.i = i;
-        this.V = distTo.length;
-    }
-
-    @Override
-    protected void compute() {
-        for (int v = 0; v < V; v++) {
-            if (edgeTo[v][i] == null) continue;  // optimization
-            for (int w = 0; w < V; w++) {
-                if (distTo[v][w] > distTo[v][i] + distTo[i][w]) {
-                    distTo[v][w] = distTo[v][i] + distTo[i][w];
-                    edgeTo[v][w] = edgeTo[i][w];
-                }
-            }
-        }
-    }
-}
-
-class SubTaskInnerLoop extends RecursiveAction {
-    private double[][] distTo;
-    private DirectedEdge[][] edgeTo;
-    private int i;
-    private int v;
-    private int w;
-    private int V;
-
-    public SubTaskInnerLoop(double[][] distTo, DirectedEdge[][] edgeTo, int i, int v, int w) {
-        this.distTo = distTo;
-        this.edgeTo = edgeTo;
-        this.i = i;
-        this.v = v;
-        this.w = w;
-        this.V = distTo.length;
-    }
-
-    @Override
-    protected void compute() {
-        if (distTo[v][w] > distTo[v][i] + distTo[i][w]) {
-            distTo[v][w] = distTo[v][i] + distTo[i][w];
-            edgeTo[v][w] = edgeTo[i][w];
-        }
     }
 }
 
