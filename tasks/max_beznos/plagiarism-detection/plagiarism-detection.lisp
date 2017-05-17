@@ -15,9 +15,13 @@
     (cl-fad:walk-directory dir (lambda (path) (push path files)) :test #'txt-file-p)
     files))
 
+(defun set-lparallel-kernel (threads)
+  (setf lparallel:*kernel* (lparallel:make-kernel threads
+                                                  :bindings (srcindex:local-thread-bindings))))
+
 (defun load-source (source-dir-path &key (threads 1))
   (srcindex:reset-source-index)
-  (setf lparallel:*kernel* (lparallel:make-kernel threads))
+  (set-lparallel-kernel threads)
   (let ((total-inserts (reduce #'+
                                (lparallel:pmapcar #'srcindex:build-source-index
                                                   :parts threads
@@ -36,7 +40,7 @@
                                         :min-words-match min-words-match)))))
 
 (defun process-suspicious-part (suspicious-dir-path &key min-words-match (threads 1))
-  (setf lparallel:*kernel* (lparallel:make-kernel threads))
+  (set-lparallel-kernel threads)
   (lparallel:pmapcar (lambda (path)
                        (when (txt-file-p path)
                          (process-suspicious-file path :min-words-match min-words-match)))

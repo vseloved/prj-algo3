@@ -15,10 +15,7 @@
   source-length)
 
 (defun extract-length (word-list extract-fn)
-  (let ((start (funcall extract-fn (first word-list)))
-        (end   (+ (length (first (car (last word-list))))
-                  (funcall extract-fn (car (last word-list))))))
-    (- end start)))
+  (srcindex:length-in-chars word-list extract-fn))
 
 (defun extract-source-ref (raw-source-ref-list)
   (let ((wms (third raw-source-ref-list)))
@@ -31,8 +28,15 @@
 (defun has-overlapping (sref others)
   (loop
      :for other-sref :in others
-     :thereis (and (>= (sref-this-offset sref) (sref-this-offset other-sref))
-                   (<= (sref-this-length sref) (sref-this-length other-sref)))))
+     :thereis (let ((sref-begin (sref-this-offset sref))
+                    (sref-end   (+ (sref-this-offset sref)
+                                   (sref-this-length sref))))
+                (or (and (>= sref-begin (sref-this-offset other-sref))
+                         (<= sref-begin (+ (sref-this-offset other-sref)
+                                           (sref-this-length other-sref))))
+                    (and (>= sref-end   (sref-this-offset other-sref))
+                         (<= sref-end   (+ (sref-this-offset other-sref)
+                                           (sref-this-length other-sref))))))))
 
 (defun remove-duplicated-source-refs (source-ref-list)
   (let ((selected-refs-ht (make-hash-table :test 'equalp)))
