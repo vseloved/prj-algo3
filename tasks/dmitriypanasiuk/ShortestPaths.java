@@ -184,21 +184,27 @@ public class ShortestPaths {
         }
         System.out.println("Dijkstra average = " + dijkstraAverage / 10);
         System.out.println("BellmanFord average = " + bellmanFordAverage / 10);*/
-        //AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("mediumEWD.txt");
-        AdjMatrixEdgeWeightedDigraph largeGraph = exampleMatrixGraph();
+        AdjMatrixEdgeWeightedDigraph largeGraph = largeGraphMatrix("10000EWD.txt");
+        //AdjMatrixEdgeWeightedDigraph largeGraph = exampleMatrixGraph();
         double unparallel = 0.0;
         double parallel = 0.0;
-        for (int i = 0; i < 1000; i++) {
-            StopWatchCPU clock1 = new StopWatchCPU();
+        double parallel2 = 0.0;
+
+        int N = 1;
+        for (int i = 0; i < N; i++) {
+            /*StopWatchCPU clock1 = new StopWatchCPU();
             FloydWarshall unp = new FloydWarshall(largeGraph, false);
-            unparallel += clock1.elapsedTime();
+            unparallel += clock1.elapsedTime();*/
             StopWatchCPU clock2 = new StopWatchCPU();
+            StopWatch clock3 = new StopWatch();
             FloydWarshall par = new FloydWarshall(largeGraph, true);
             parallel += clock2.elapsedTime();
-            checkParallelCorrectness(unp, par, largeGraph.V());
+            parallel2 += clock3.elapsedTime();
+            //checkParallelCorrectness(unp, par, largeGraph.V());
         }
-        System.out.println("Not parallel average = " + unparallel / 10);
-        System.out.println("Parallel average = " + parallel / 10);
+        System.out.println("Not parallel average = " + unparallel / N);
+        System.out.println("Parallel average = " + parallel / N);
+        System.out.println("Parallel2 average = " + parallel2 / N);
         System.out.println("Ratio is " + unparallel/parallel);
     }
 }
