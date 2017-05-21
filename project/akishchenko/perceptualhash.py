@@ -15,10 +15,11 @@ class PerceptualFastAvg:
     SIZE = 8 # 8x8 square, total 64 pixels
     TOTAL = SIZE * SIZE
 
-    def __init__(self, fn):
+    def __init__(self, fn, calculate=True):
         self.fn = fn
         self.avg = -1
         self.hashRes = -1
+        if calculate: self.calculate()
 
     def calculate_avg(self, img):
         """Calculate average color value (gray)"""
@@ -52,8 +53,10 @@ class PerceptualFastAvg:
 
         return self.hashRes
 
+    def __str__(self):
+        return "\"{0}\",{1}".format(self.fn, self.hashRes)
+
 if __name__ == '__main__':
     fn = "lena_test_image.png"
     pfa = PerceptualFastAvg(fn)
-    pfa.calculate()
-    print(pfa.fn, pfa.hashRes)
+    print(pfa)
