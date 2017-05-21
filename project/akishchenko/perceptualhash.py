@@ -54,7 +54,7 @@ class PerceptualFastAvg:
         return self.hashRes
 
     def __str__(self):
-        return "\"{0}\",{1}".format(self.fn, self.hashRes)
+        return "\"{0}\",{1}\n".format(self.fn, self.hashRes)
 
 if __name__ == '__main__':
     fn = "lena_test_image.png"
