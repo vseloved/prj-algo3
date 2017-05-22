@@ -1,4 +1,4 @@
-package dmitriypanasiuk;
+package dmitriypanasyuk;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

@@ -1,4 +1,6 @@
-package dmitriypanasiuk;
+package dmitriypanasyuk;
+
+import dmitriypanasiuk.StopWatch;
 
 import java.awt.*;
 
@@ -284,14 +286,19 @@ public class SeamCarver {
     }
 
     public static void main(String[] args) {
-        String filename = "HJocean.png";
+        //String filename = "HJocean.png";
+        String filename = "Broadway_tower_edit.jpg";
         final Picture p = new Picture(filename);
 
         SeamCarver s = new SeamCarver(p);
+        StopWatch clock = new StopWatch();
         for (int i = 0; i < 200; i++) {
             s.removeVerticalSeam(s.findVerticalSeam());
             s.removeHorizontalSeam(s.findHorizontalSeam());
         }
+        System.out.println(clock.elapsedTime());
+        clock = new StopWatch();
         s.picture().save("new.png");
+        System.out.println(clock.elapsedTime());
     }
 }
