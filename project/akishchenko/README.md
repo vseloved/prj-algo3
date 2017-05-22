@@ -2,7 +2,7 @@
 Utils and algorithms to find image duplicates
 
 ## Python versions
-Should work on python3 version >= 3.2
+Should work on python3 version >= 3.2  
 HIGH recomendation use **PyPy3** or calculation will be so slow... :(
 
 I've tried on PyPy for windows
@@ -29,9 +29,9 @@ file: results/fastavg.result.csv
 ```
 
 ### Images folder
-There are should be all *.jpg files
-Look readme in images folder
-lun_image_clusters_training_set.csv --> file from lun.ua team
+There are should be all *.jpg files  
+Look *readme* in images folder  
+*lun_image_clusters_training_set.csv* --> file from lun.ua team
 
 ### Results folder
 - *.raw.csv files
