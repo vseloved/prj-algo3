@@ -19,7 +19,16 @@ def get_hamming_distance(a, b):
     diff = 0
     for i in range(len(a)):
         if a[i] != b[i]: diff += 1
-    return diff / 64.0
+    return diff
+
+def convert_int_to_bits(n, bLen=64):
+    bits = list(bin(n)[2:].zfill(bLen))
+    bits = list(map(int, bits))
+    return bits
+
+def convert_bits_to_int(bits):
+    res = int("".join(map(str, bits)), base=2)
+    return res
 
 class RawToResults:
 
@@ -28,12 +37,12 @@ class RawToResults:
             self.name = name
             self.hashRes = hashRes
             self.assign = assign
-            self.bits = list(bin(hashRes)[2:].zfill(64))
+            self.bits = convert_int_to_bits(hashRes, 64)
 
         def __str__(self):
             return "(n:{0})".format(self.name)
 
-    def __init__(self, fn, fn_out, distThreshold = 0.15, verboseError = False):
+    def __init__(self, fn, fn_out, distThreshold = 8, verboseError = False):
         self.fn = fn
         self.fn_out = fn_out
         self.rawList = []
@@ -55,7 +64,7 @@ class RawToResults:
     def calculate(self):
         self.errors = 0
         for i in range(len(self.rawList) - 1):
-            if i % 1000 == 0: print("\talready calculated: {0}, errors: {1}".format(i, self.errors))
+            if i % 100 == 0: print("\talready calculated: {0}, errors: {1}".format(i, self.errors))
 
             for k in range(i, len(self.rawList)):
                 n1 = self.rawList[i]
@@ -109,6 +118,44 @@ class CsvStats:
 
 
 if __name__ == '__main__':
+    from functools import reduce
+
     fname = 'results/correct.result.csv'
     stats = CsvStats(fname)
+    print('=TEST CSV STATS=')
     print(stats)
+
+    print('=TEST bit conversion')
+    val = (1 << 8) - 1 # 11111111
+    bits = convert_int_to_bits(val, 8)
+    assert len(bits) == 8, "[fail] len of bits"
+    assert sum(bits) == 8, "[fail] sum of bits != 8"
+    nVal = convert_bits_to_int(bits)
+    assert nVal == 255, "[fail] bits to int"
+    nbits = convert_int_to_bits(nVal, 8)
+    assert len(nbits) == 8, "[fail] len of bits"
+    assert sum(nbits) == 8, "[fail] sum of bits != 8"
+
+    bits[0] = 0
+    bits[1] = 0
+    bits[2] = 0
+    bits[4] = 0
+    nval = convert_bits_to_int(bits)
+    nbits = convert_int_to_bits(nval, 8)
+    d = get_hamming_distance(bits, nbits)
+    assert d == 0, "[fail] hamm distance != 0"
+    bits[3] = 0
+    nval = convert_bits_to_int(bits)
+    nbits = convert_int_to_bits(nval, 8)
+    bits[3] = 1
+    d = get_hamming_distance(bits, nbits)
+    assert d == 1, "[fail] hamm distance != 1"
+    v1 = (1 << 8) - 1
+    v2 = 0
+    d = get_hamming_distance(convert_int_to_bits(v1, 64), convert_int_to_bits(v2, 64))
+    assert d == 8, '[fail] hamm distance != 8'
+
+
+
+
+

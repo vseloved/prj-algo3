@@ -1,4 +1,5 @@
 import PIL.Image as Image
+from datasetutils import convert_bits_to_int
 
 class PerceptualFastAvg:
     """
@@ -40,7 +41,7 @@ class PerceptualFastAvg:
                 bits[index] = 0 if color <= self.avg else 1
                 index += 1
 
-        self.hashRes = int("".join(map(str, bits)), base=2)
+        self.hashRes = convert_bits_to_int(bits)
 
     def calculate(self):
         """load image and calculate hash"""
