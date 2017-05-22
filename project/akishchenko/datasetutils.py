@@ -22,7 +22,6 @@ def get_hamming_distance(a, b):
     return diff / 64.0
 
 class RawToResults:
-    DISTANCE_THRESHOLD = 0.15
 
     class RawNode:
         def __init__(self, name, hashRes, assign=-1):
@@ -34,9 +33,13 @@ class RawToResults:
         def __str__(self):
             return "(n:{0})".format(self.name)
 
-    def __init__(self, fn):
+    def __init__(self, fn, fn_out, distThreshold = 0.15, verboseError = False):
         self.fn = fn
+        self.fn_out = fn_out
         self.rawList = []
+        self.distThreshold = distThreshold
+        self.verboseError = verboseError
+
         with open(fn) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
@@ -50,8 +53,10 @@ class RawToResults:
         print("\tsaved")
 
     def calculate(self):
+        self.errors = 0
         for i in range(len(self.rawList) - 1):
-            print(i)
+            if i % 1000 == 0: print("\talready calculated: {0}, errors: {1}".format(i, self.errors))
+
             for k in range(i, len(self.rawList)):
                 n1 = self.rawList[i]
                 n2 = self.rawList[k]
@@ -59,16 +64,17 @@ class RawToResults:
                 if n1.assign > 0 and n2.assign > 0 and n1.assign == n2.assign: continue
 
                 dist = get_hamming_distance(n1.bits, n2.bits)
-                if dist <= self.DISTANCE_THRESHOLD:
+                if dist <= self.distThreshold:
                     if n1.assign > 0 and n2.assign > 0:
-                        print('[error] similar: {0} and {1} but another assign...'.format(n1, n2))
+                        if self.verboseError:
+                            print('[error] similar: {0} and {1} but another assign...'.format(n1, n2))
+                        self.errors += 1
                     else:
                         if n1.assign < 0: n1.assign = n1.hashRes
                         n2.assign = n1.assign
 
     def save_to_file(self):
-        save = self.fn.replace('raw', 'result')
-        with open(save, 'w') as out_file:
+        with open(self.fn_out, 'w') as out_file:
             out_file.write('"file","cluster"\n')
             for n in self.rawList:
                 out_file.write('"{0}",{1}\n'.format(n.name, n.assign))

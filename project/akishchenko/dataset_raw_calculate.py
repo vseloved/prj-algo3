@@ -1,10 +1,15 @@
+import os.path
 from datasetutils import get_filepaths
 from perceptualhash import PerceptualFastAvg
 
 def calculate_fast_avg(files):
     print("start calculating: ~{0} files".format(len(files)))
-    save = 'results/fastavg.raw.csv'
-    with open(save, 'w') as out_file:
+    fn = 'results/fastavg.raw.csv'
+    if os.path.isfile(fn):
+        print("[cancel] already exist:" ,fn)
+        return
+
+    with open(fn, 'w') as out_file:
         out_file.write('"file","hash"\n')
         total = 0
         for f in files:
