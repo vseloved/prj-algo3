@@ -23,7 +23,15 @@ file: results/correct.result.csv
          total files: 23513, unique groups: 500
          in group, min: 21, max: 119, avg: 47.03
 
-file: results/fastavg.result.csv
+file: results/fastavg_8x8_bicubic.result.csv
+         total files: 23513, unique groups: 509
+         in group, min: 1, max: 2123, avg: 46.19
+
+file: results/fastavg_8x8_lanczos.result.csv
+         total files: 23513, unique groups: 555
+         in group, min: 1, max: 1986, avg: 42.37
+
+file: results/fastavg_8x8_nearest.result.csv
          total files: 23513, unique groups: 921
          in group, min: 1, max: 599, avg: 25.53
 ```

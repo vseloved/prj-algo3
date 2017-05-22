@@ -13,14 +13,19 @@ class PerceptualFastAvg:
         5. construct the hash
     """
 
-    SIZE = 8 # 8x8 square, total 64 pixels
-    TOTAL = SIZE * SIZE
-
-    def __init__(self, fn, calculate=True):
+    def __init__(self, fn, resample=Image.NEAREST, size=8, calculate=True):
+        """ default size 8 (8x8 square, total 64 pixels)"""
+        self.SIZE = size
+        self.TOTAL = size * size
+        self.resample = resample
         self.fn = fn
         self.avg = -1
         self.hashRes = -1
+
         if calculate: self.calculate()
+
+    def reduce_size(self, img):
+        return img.resize((self.SIZE, self.SIZE), self.resample)
 
     def calculate_avg(self, img):
         """Calculate average color value (gray)"""
@@ -46,7 +51,7 @@ class PerceptualFastAvg:
     def calculate(self):
         """load image and calculate hash"""
         im = Image.open(self.fn)
-        res = im.resize((self.SIZE, self.SIZE), 0)
+        res = self.reduce_size(im)
         res = res.convert(mode="L")
 
         self.calculate_avg(res)
