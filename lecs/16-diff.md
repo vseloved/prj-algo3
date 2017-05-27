@@ -23,6 +23,7 @@ LCS(i, j) = LCS(i-1, j-1) + 1 if word1[i] = word2[j]
 - http://algorithms.tutorialhorizon.com/dynamic-programming-longest-common-subsequence/
 - http://algorithms.tutorialhorizon.com/dynamic-programming-edit-distance-problem/
 - https://neil.fraser.name/writing/diff/
+- https://stackoverflow.com/questions/42635889/myers-diff-algorithm-vs-hunt-mcilroy-algorithm
 - https://blog.jcoglan.com/2017/02/12/the-myers-diff-algorithm-part-1/, https://blog.jcoglan.com/2017/02/15/the-myers-diff-algorithm-part-2/, https://blog.jcoglan.com/2017/02/17/the-myers-diff-algorithm-part-3/, https://blog.jcoglan.com/2017/03/22/myers-diff-in-linear-space-theory/, https://blog.jcoglan.com/2017/04/25/myers-diff-in-linear-space-implementation/
 - http://www.cs.dartmouth.edu/~doug/diff.pdf
 - https://stackoverflow.com/questions/2817255/where-can-i-find-the-diff-algorithm
