@@ -56,6 +56,8 @@
 
 Базовая промышленная реализация этих идей — [алгоритм DEFLATE](https://en.wikipedia.org/wiki/DEFLATE).
 
+Также полезным для компрессии часто является преобразование Барроуза-Виллера.
+
 
 ## To read
 
@@ -63,3 +65,4 @@
 - https://habrahabr.ru/post/132683/
 - http://www.drdobbs.com/cpp/data-compression-with-arithmetic-encodin/240169251
 - http://mf.grsu.by/UchProc/livak/en/po/comprsite/theory_lz77.html
+- https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/bwt.pdf
