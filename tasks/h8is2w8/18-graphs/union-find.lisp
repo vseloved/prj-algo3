@@ -1,0 +1,27 @@
+(defstruct (union-find (:conc-name nil)
+		       (:constructor %make-union-find))
+  ids szs)
+
+(defun make-union-find (n)
+  (let ((ids (make-array n))
+	(szs (make-array n :initial-element 1)))
+    (dotimes (i n) (setf (aref ids i) i))
+    (%make-union-find :ids ids :szs szs)))
+
+(defun connected? (uf p q)
+  (eql (root uf p) (root uf q)))
+
+(defun root (uf id)
+  (loop :with n = id :while (/= n (aref (ids uf) n))
+     :do (setf (aref (ids uf) n) (aref (ids uf) (aref (ids uf) n))
+	       n (aref (ids uf) n))
+     :finally (return n)))
+
+(defun union-sets (uf p q)
+  (let ((i (root uf p))
+	(j (root uf q)))
+    (when (eql i j) (return-from union-sets))
+    (when (< (aref (szs uf) i) (aref (szs uf) j))
+      (psetf i j j i))
+    (setf (aref (ids uf) i) j)
+    (incf (aref (szs uf) j) (aref (szs uf) i))))
