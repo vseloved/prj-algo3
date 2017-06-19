@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<document reference="suspicious-document00007.txt">
+  <feature name="about" authors="Webb, Stephen Palfrey" title="A Sketch of the Causes, Operations and Results of the San Francisco Vigilance Committee of 1856" lang="en" />
+  <feature name="md5Hash" value="f85bd4bd292a6db5be20b24704e06b7c" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="224" this_length="2807" source_reference="source-document06022.txt" source_language="en" source_offset="729730" source_length="2777" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="3032" this_length="3313" source_reference="source-document06022.txt" source_language="en" source_offset="134294" source_length="3307" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="6515" this_length="2923" source_reference="source-document06022.txt" source_language="en" source_offset="1468563" source_length="2949" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="9906" this_length="491" source_reference="source-document06022.txt" source_language="en" source_offset="119312" source_length="510" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="10398" this_length="737" source_reference="source-document06022.txt" source_language="en" source_offset="998771" source_length="758" />
+  <feature name="plagiarism" type="artificial" obfuscation="low" this_language="en" this_offset="11136" this_length="276" source_reference="source-document06022.txt" source_language="en" source_offset="1019211" source_length="274" />
+</document>
+
