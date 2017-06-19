@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+# froze-string-literal: true
+
+$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
+require 'kademlia'
+
+# TODO: Build CLI to interact with Kademlia network
+#
+# require 'readline'
+# while cmd = Readline.readline('kademlia> ', true)
+# end
