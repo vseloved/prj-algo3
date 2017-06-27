@@ -1,0 +1,16 @@
+This is a folder for dataset images!
+There are should be *.jpg in this folder 
+
+Get LUN.UA dataset with 23k images. 
+
+==== Direct manual download ====
+Direct link to my google drive
+https://drive.google.com/open?id=0BwtnhjcLyzqMMDVWaUhGa0VfRzQ
+
+==== VERY SLOW METHOD ====
+Auto downloading one by one:
+ 1. parse csv 
+ 2. download every image from csv
+
+use ../dataset_image_loader.py for downloading lun.ua image dataset
+(lun.ua -> 23k images, > 1.8Gb data)
