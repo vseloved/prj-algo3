@@ -237,6 +237,39 @@ public class SeamCarver {
         this.width -= 1;
     }
 
+    public void addVerticalSeam(int[] seam) {
+        if (seam == null) {
+            throw new NullPointerException();
+        }
+        assureValidVerticalSeam(seam);
+        int[][] newColorsRGB = new int[this.width() + 1][this.height()];
+
+        for (int y = 0; y < height(); y++) {
+            int currentSeam = seam[y];
+            int counter = 0;
+            for (int x = 0; x < width(); x++) {
+                if (x != currentSeam) {
+                    newColorsRGB[counter][y] = colorsRGB[x][y];
+                    counter++;
+                } else {
+                    int newR = (getRed(colorsRGB[x][y]) + getRed(colorsRGB[x-1][y])) / 2;
+                    int newG = (getGreen(colorsRGB[x][y]) + getGreen(colorsRGB[x-1][y])) / 2;
+                    int newB = (getBlue(colorsRGB[x][y]) + getBlue(colorsRGB[x-1][y])) / 2;
+                    newColorsRGB[counter][y] = rgbFromInt(newR, newG, newB);
+                    counter++;
+                    newColorsRGB[counter][y] = colorsRGB[x][y];
+                    counter++;
+                }
+            }
+        }
+        this.colorsRGB = newColorsRGB;
+        this.width += 1;
+    }
+
+    public void addHorizontalSeam(int[] seam) {
+
+    }
+
     private void assureValidVerticalSeam(int[] seam) {
         if (seam.length != height()) {
             throw new IllegalArgumentException();
@@ -286,8 +319,12 @@ public class SeamCarver {
     }
 
     public static void main(String[] args) {
+<<<<<<< Updated upstream:project/dmitriypanasyuk/SeamCarver.java
         //String filename = "HJocean.png";
         String filename = "Broadway_tower_edit.jpg";
+=======
+        String filename = "ship.jpg";
+>>>>>>> Stashed changes:tasks/dmitriypanasiuk/SeamCarver.java
         final Picture p = new Picture(filename);
 
         SeamCarver s = new SeamCarver(p);
@@ -295,10 +332,15 @@ public class SeamCarver {
         for (int i = 0; i < 200; i++) {
             s.removeVerticalSeam(s.findVerticalSeam());
             s.removeHorizontalSeam(s.findHorizontalSeam());
+            //s.addVerticalSeam(s.findVerticalSeam());
         }
+<<<<<<< Updated upstream:project/dmitriypanasyuk/SeamCarver.java
         System.out.println(clock.elapsedTime());
         clock = new StopWatch();
         s.picture().save("new.png");
         System.out.println(clock.elapsedTime());
+=======
+        s.picture().save("ship_both.png");
+>>>>>>> Stashed changes:tasks/dmitriypanasiuk/SeamCarver.java
     }
 }
