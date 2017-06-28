@@ -1,4 +1,4 @@
-package dmitriypanasyuk;
+package dmitriypanasiuk;
 
 import dmitriypanasiuk.StopWatch;
 
@@ -319,12 +319,7 @@ public class SeamCarver {
     }
 
     public static void main(String[] args) {
-<<<<<<< Updated upstream:project/dmitriypanasyuk/SeamCarver.java
-        //String filename = "HJocean.png";
-        String filename = "Broadway_tower_edit.jpg";
-=======
         String filename = "ship.jpg";
->>>>>>> Stashed changes:tasks/dmitriypanasiuk/SeamCarver.java
         final Picture p = new Picture(filename);
 
         SeamCarver s = new SeamCarver(p);
@@ -334,13 +329,7 @@ public class SeamCarver {
             s.removeHorizontalSeam(s.findHorizontalSeam());
             //s.addVerticalSeam(s.findVerticalSeam());
         }
-<<<<<<< Updated upstream:project/dmitriypanasyuk/SeamCarver.java
         System.out.println(clock.elapsedTime());
-        clock = new StopWatch();
         s.picture().save("new.png");
-        System.out.println(clock.elapsedTime());
-=======
-        s.picture().save("ship_both.png");
->>>>>>> Stashed changes:tasks/dmitriypanasiuk/SeamCarver.java
     }
 }
