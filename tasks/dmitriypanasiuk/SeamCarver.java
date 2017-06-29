@@ -1,7 +1,5 @@
 package dmitriypanasiuk;
 
-import dmitriypanasiuk.StopWatch;
-
 import java.awt.*;
 
 public class SeamCarver {
@@ -252,9 +250,10 @@ public class SeamCarver {
                     newColorsRGB[counter][y] = colorsRGB[x][y];
                     counter++;
                 } else {
-                    int newR = (getRed(colorsRGB[x][y]) + getRed(colorsRGB[x-1][y])) / 2;
-                    int newG = (getGreen(colorsRGB[x][y]) + getGreen(colorsRGB[x-1][y])) / 2;
-                    int newB = (getBlue(colorsRGB[x][y]) + getBlue(colorsRGB[x-1][y])) / 2;
+                    int otherX = (x > 0) ? x-1 : x;
+                    int newR = (getRed(colorsRGB[x][y]) + getRed(colorsRGB[otherX][y])) / 2;
+                    int newG = (getGreen(colorsRGB[x][y]) + getGreen(colorsRGB[otherX][y])) / 2;
+                    int newB = (getBlue(colorsRGB[x][y]) + getBlue(colorsRGB[otherX][y])) / 2;
                     newColorsRGB[counter][y] = rgbFromInt(newR, newG, newB);
                     counter++;
                     newColorsRGB[counter][y] = colorsRGB[x][y];
@@ -267,7 +266,73 @@ public class SeamCarver {
     }
 
     public void addHorizontalSeam(int[] seam) {
+        if (seam == null) {
+            throw new NullPointerException();
+        }
+        assureValidHorizontalSeam(seam);
+        int[][] newColorsRGB = new int[this.width()][this.height() + 1];
+        for (int x = 0; x < width(); x++) {
+            int currentSeam = seam[x];
+            int counter = 0;
+            for (int y = 0; y < height(); y++) {
+                if (y != currentSeam) {
+                    newColorsRGB[x][counter] = colorsRGB[x][y];
+                    counter++;
+                } else {
+                    int otherY = (y > 0) ? (y-1) : 0;
+                    int newR = (getRed(colorsRGB[x][y]) + getRed(colorsRGB[x][otherY])) / 2;
+                    int newG = (getGreen(colorsRGB[x][y]) + getGreen(colorsRGB[x][otherY])) / 2;
+                    int newB = (getBlue(colorsRGB[x][y]) + getBlue(colorsRGB[x][otherY])) / 2;
+                    newColorsRGB[x][counter] = rgbFromInt(newR, newG, newB);
+                    counter++;
+                    newColorsRGB[x][counter] = colorsRGB[x][y];
+                    counter++;
+                }
+            }
+        }
 
+        this.colorsRGB = newColorsRGB;
+        this.height += 1;
+    }
+
+    public void addVerticalSeams(int number) {
+        int[][] initialColors = new int[width()][height()];
+        arrayCopy(colorsRGB, initialColors);
+        int[][] seams = new int[number][];
+
+        for (int i = 0; i < number; i++){
+            int[] seam = findVerticalSeam();
+            seams[i] = seam;
+            removeVerticalSeam(seam);
+        }
+        this.width += number;
+        this.colorsRGB = initialColors;
+        for (int i = 0; i < number; i++) {
+            addVerticalSeam(seams[i]);
+        }
+    }
+
+    public void addHorizontalSeams(int number) {
+        int[][] initialColors = new int[width()][height()];
+        arrayCopy(colorsRGB, initialColors);
+        int[][] seams = new int[number][];
+
+        for (int i = 0; i < number; i++){
+            int[] seam = findHorizontalSeam();
+            seams[i] = seam;
+            removeHorizontalSeam(seam);
+        }
+        this.height += number;
+        this.colorsRGB = initialColors;
+        for (int i = 0; i < number; i++) {
+            addHorizontalSeam(seams[i]);
+        }
+    }
+
+    public static void arrayCopy(int[][] aSource, int[][] aDestination) {
+        for (int i = 0; i < aSource.length; i++) {
+            System.arraycopy(aSource[i], 0, aDestination[i], 0, aSource[i].length);
+        }
     }
 
     private void assureValidVerticalSeam(int[] seam) {
@@ -319,17 +384,20 @@ public class SeamCarver {
     }
 
     public static void main(String[] args) {
-        String filename = "ship.jpg";
+        String filename = "bridge.jpg";
         final Picture p = new Picture(filename);
 
         SeamCarver s = new SeamCarver(p);
-        StopWatch clock = new StopWatch();
-        for (int i = 0; i < 200; i++) {
-            s.removeVerticalSeam(s.findVerticalSeam());
-            s.removeHorizontalSeam(s.findHorizontalSeam());
+        //s.addVerticalSeams(50);
+        s.addVerticalSeams(50);
+        s.addHorizontalSeams(50);
+
+        /*for (int i = 0; i < 200; i++) {
+            //s.removeVerticalSeam(s.findVerticalSeam());
+            //s.removeHorizontalSeam(s.findHorizontalSeam());
             //s.addVerticalSeam(s.findVerticalSeam());
-        }
-        System.out.println(clock.elapsedTime());
-        s.picture().save("new.png");
+            s.addHorizontalSeam(s.findHorizontalSeam());
+        }*/
+        s.picture().save("new_bridge.jpg");
     }
 }
