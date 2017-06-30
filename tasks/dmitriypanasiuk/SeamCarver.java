@@ -384,20 +384,23 @@ public class SeamCarver {
     }
 
     public static void main(String[] args) {
-        String filename = "bridge.jpg";
+        String filename = "Broadway_tower_edit.jpg";
         final Picture p = new Picture(filename);
 
         SeamCarver s = new SeamCarver(p);
-        //s.addVerticalSeams(50);
-        s.addVerticalSeams(50);
-        s.addHorizontalSeams(50);
+        s.addVerticalSeams(400);
+        s.addHorizontalSeams(400);
+        //s.addVerticalSeams(100);
+        //s.addHorizontalSeams(100);
 
-        /*for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 100; i++) {
+            //s.addVerticalSeams(50);
+            //s.addVerticalSeams(50);
             //s.removeVerticalSeam(s.findVerticalSeam());
             //s.removeHorizontalSeam(s.findHorizontalSeam());
             //s.addVerticalSeam(s.findVerticalSeam());
-            s.addHorizontalSeam(s.findHorizontalSeam());
-        }*/
-        s.picture().save("new_bridge.jpg");
+            //s.addHorizontalSeam(s.findHorizontalSeam());
+        }
+        s.picture().save("tower+400.jpg");
     }
 }
