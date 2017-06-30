@@ -3,3 +3,6 @@
 .*
 *.fasl
 !.gitignore
+/target
+pom.xml
+*.iml
